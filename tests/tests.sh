@@ -16,14 +16,15 @@ events {
 }
 EOF
 
-nginx -c $PWD/test.conf
+nginx -c $PWD/test.conf 2> /dev/null
 
-curl 127.0.0.1:8080 > nginx_out
+curl 127.0.0.1:8080 > nginx_out 2> /dev/null
 
 pkill nginx
+kill $(lsof -ti:8080)
 
-#pkill webserv
-#../webserv test.conf
-#curl 127.0.0.1:8000 > webserv_out
-#diff nginx_out webserv_out
+pkill webserv
+../webserv test.conf
+curl 127.0.0.1:8000 > webserv_out 2> /dev/null
+diff nginx_out webserv_out
 
