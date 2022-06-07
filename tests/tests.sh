@@ -6,7 +6,7 @@ error_log $PWD/nginxerror.log warn;
 http {
     access_log $PWD/nginxaccess.log;
     server {
-        listen         8000;
+        listen         8080;
         root $PWD;
     }
 }
@@ -17,7 +17,7 @@ EOF
 
 nginx -c $PWD/test.conf
 
-curl 127.0.0.1:8000 > nginx_out
+curl 127.0.0.1:8080 > nginx_out
 
 pkill nginx
 
