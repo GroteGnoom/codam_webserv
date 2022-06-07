@@ -3,3 +3,5 @@ tests/nginx_out
 tests/webserv_out
 tests/test.conf
 tests/*.log
+obj
+webserv
