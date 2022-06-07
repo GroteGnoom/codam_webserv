@@ -1,0 +1,5 @@
+When trying to run nginx from the command line it failed with:
+0.0.0.0:80 failed (98: Unknown error)
+
+because it was already running. systemctl stop nginx helped :)
+
