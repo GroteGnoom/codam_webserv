@@ -1,3 +1,4 @@
+#include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <cstdio>
@@ -8,14 +9,14 @@
 * returns socket id on success      */
 
 int	create_socket(void) {
-	int	server_fd;
+	int	socket_fd;
 
-	server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_fd < 0){
-		perror("cannot create socket");
-		return (0);
+	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (socket_fd < 0){
+        std::cout << "Failed to create socket, errno: " << errno << std::endl;
+		return (EXIT_FAILURE);
 	}
-	return (server_fd);
+	return (socket_fd);
 }
 
 /*
@@ -28,25 +29,22 @@ int	identify_socket(int socket, int port, sockaddr_in address) {
 	address.sin_addr.s_addr = htonl(INADDR_ANY);	//adress of this socket, this machines IP adress
 	address.sin_port = htons(port);					//port number
 	if (bind(socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
-		perror("bind failed");
-		return (0);
+        std::cout << "Failed to bind to port " << port << ", errno: " << errno << std::endl;	
+		return (EXIT_FAILURE);
 	}
-	return (1);
+	return (EXIT_SUCCESS);
 }
 
 /*
 * make the socket prepared to accept connections (make it listen)
 * returns 1 on success      */
 
-int	listening_socket(int socket) {
-	int	backlog;
-
-	backlog = 10;
+int	listening_socket(int socket, int backlog) {
 	if (listen(socket, backlog) < 0) {
-		perror("listen failed");
-		return (0);
+        std::cout << "Failed to listen to socket, errno: " << errno << std::endl;
+		return (EXIT_FAILURE);
 	}
-	return (1);
+	return (EXIT_SUCCESS);
 }
 
 /*
@@ -60,8 +58,8 @@ int	accept_socket(int socket, sockaddr_in address) {
 	address_len = sizeof(address);
 	new_socket = accept(socket, (struct sockaddr *)&address, (socklen_t *)&address_len);
 	if (new_socket < 0) {
-		perror("accept failed");
-		return (0);
+        std::cout << "Failed to grab connection, errno: " << errno << std::endl;
+		return (EXIT_FAILURE);
 	}
 	return (new_socket);
 }
