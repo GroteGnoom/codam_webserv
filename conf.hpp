@@ -4,8 +4,4 @@ struct t_settings {
     std::string root;
 };
 
-t_settings read_conf(char *conf_file) {
-    t_settings settings;
-    (void) conf_file;
-    return settings;
-};
+t_settings read_conf(char *conf_file);
