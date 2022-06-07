@@ -25,6 +25,5 @@ kill $(lsof -ti:8080)
 
 pkill webserv
 ../webserv test.conf
-curl 127.0.0.1:8000 > webserv_out 2> /dev/null
+curl 127.0.0.1:8081 > webserv_out 2> /dev/null
 diff nginx_out webserv_out
-

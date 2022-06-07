@@ -1,5 +1,5 @@
 NAME = webserv
-SRC = main.cpp conf.cpp
+SRC = main.cpp conf.cpp socket.cpp
 INC = conf.hpp
 OBJDIR = obj
 
