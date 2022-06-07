@@ -1,5 +1,6 @@
 #!/bin/bash
 pkill nginx
+kill $(lsof -ti:8080)
 
 cat << EOF > test.conf
 error_log $PWD/nginxerror.log warn;
