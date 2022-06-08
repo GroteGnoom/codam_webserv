@@ -1,0 +1,5 @@
+
+parse config
+parse requests
+dispatch request to threadpool
+generate response
