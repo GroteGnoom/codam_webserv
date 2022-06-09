@@ -1,8 +1,9 @@
 #include <iostream>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <cstdio>
 #include <cstring>
+#include <unistd.h>
+#include "socket.hpp"
 
 /*
 * create a new socket
@@ -62,4 +63,27 @@ int	accept_socket(int socket, sockaddr_in address) {
 		return (EXIT_FAILURE);
 	}
 	return (new_socket);
+}
+
+int	listen_to_new_socket(int port) {
+	int	server_socket = create_socket();
+	struct sockaddr_in	address;
+	int	backlog = 1000;			//how many requests can be backlogged
+	long	read_len;
+	int		new_socket;
+
+	if (server_socket == EXIT_FAILURE)
+		exit(EXIT_FAILURE);
+	if (identify_socket(server_socket, port, address) == EXIT_FAILURE)
+		exit(EXIT_FAILURE);
+	if (listening_socket(server_socket, backlog) == EXIT_FAILURE)
+		exit(EXIT_FAILURE);
+	while (1) {
+		new_socket = accept_socket(server_socket, address);
+		if (new_socket == EXIT_FAILURE)
+			exit(EXIT_FAILURE);
+		char	buffer[30000] = {0};
+		read_len = read(new_socket, buffer, 30000);
+		std::cout << buffer << std::endl;
+	}
 }
