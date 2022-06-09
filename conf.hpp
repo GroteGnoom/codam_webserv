@@ -4,7 +4,7 @@
 #include <fstream>
 
 struct t_settings {
-    int listen;
+    int listen_port;
     std::string root;
 };
 
