@@ -1,10 +1,10 @@
 NAME = webserv
-SRC = main.cpp conf.cpp socket.cpp
+SRC = main.cpp conf.cpp socket.cpp request.cpp
 INC = conf.hpp
 OBJDIR = obj
 
 CC=c++
-FLAGS = -Wall -Wextra -Werror
+FLAGS = -Wall -Wextra -Werror -fsanitize=address
 
 OBJ = $(SRC:%.cpp=$(OBJDIR)/%.o)
 

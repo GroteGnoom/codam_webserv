@@ -3,7 +3,9 @@
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
+#include <map>
 #include "socket.hpp"
+#include "request.hpp"
 
 /*
 * create a new socket
@@ -66,11 +68,11 @@ int	accept_socket(int socket, sockaddr_in address) {
 }
 
 int	listen_to_new_socket(int port) {
-	int	server_socket = create_socket();
-	struct sockaddr_in	address;
-	int	backlog = 1000;			//how many requests can be backlogged
-	long	read_len;
-	int		new_socket;
+	int									server_socket = create_socket();
+	struct sockaddr_in					address;
+	int									backlog = 1000;	//how many requests can be backlogged
+	int									new_socket;
+	std::map<std::string, std::string>	request_info;
 
 	if (server_socket == EXIT_FAILURE)
 		exit(EXIT_FAILURE);
@@ -82,8 +84,9 @@ int	listen_to_new_socket(int port) {
 		new_socket = accept_socket(server_socket, address);
 		if (new_socket == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
-		char	buffer[30000] = {0};
-		read_len = read(new_socket, buffer, 30000);
-		std::cout << buffer << std::endl;
+		request_info = get_request_info(new_socket);
+		std::cout << request_info["User-Agent"] << std::endl;
+		write(new_socket, "Hoi", strlen("Hoi"));
+		close(new_socket);
 	}
 }
