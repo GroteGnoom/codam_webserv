@@ -5,3 +5,4 @@ tests/test.conf
 tests/*.log
 obj
 webserv
+tags
