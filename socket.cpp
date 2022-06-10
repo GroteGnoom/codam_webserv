@@ -67,7 +67,7 @@ int	accept_socket(int socket, sockaddr_in address) {
 	return (new_socket);
 }
 
-int	listen_to_new_socket(int port) {
+int	listen_to_new_socket(int port, t_settings settings) {
 	int									server_socket = create_socket();
 	struct sockaddr_in					address;
 	int									backlog = 1000;	//how many requests can be backlogged
@@ -87,7 +87,10 @@ int	listen_to_new_socket(int port) {
 		request_info = get_request_info(new_socket);
 		std::cout << request_info["User-Agent"] << std::endl;
 		//write(new_socket, get_reponse().c_str(), get_reponse().size());
-		write(new_socket, get_reponse_from_page("/Users/dnoom/Documents/projects/webserv/tests/index.html").c_str(), get_reponse().size());
+		std::string webpage = settings.root + "/index.html";
+		std::cout << "page: " << webpage << "\n";
+		std::string resp = get_reponse_from_page(webpage);
+		write(new_socket, resp.c_str(), resp.size());
 		close(new_socket);
 	}
 }

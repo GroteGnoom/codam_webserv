@@ -9,5 +9,5 @@ int main(int argc, char **argv) {
     } else {
 		settings = read_conf(argv[1]);
 	}
-    listen_to_new_socket(settings.listen_port);
+    listen_to_new_socket(settings.listen_port, settings);
 }
