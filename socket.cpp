@@ -6,6 +6,7 @@
 #include <map>
 #include "socket.hpp"
 #include "request.hpp"
+#include "response.hpp"
 
 /*
 * create a new socket
@@ -86,7 +87,7 @@ int	listen_to_new_socket(int port) {
 			exit(EXIT_FAILURE);
 		request_info = get_request_info(new_socket);
 		std::cout << request_info["User-Agent"] << std::endl;
-		write(new_socket, "Hoi", strlen("Hoi"));
+		write(new_socket, get_reponse().c_str(), get_reponse().size());
 		close(new_socket);
 	}
 }

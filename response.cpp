@@ -30,7 +30,7 @@ std::string get_reponse() {
 	body += "<html>\n";
 	body += "<head>\n";
 	body += "<title>Welcome to webserv</title>\n";
-	body += "<style>\n";
+	body += "<h1>Joehoe</h1>\n";
 	resp.body = body;
 	resp.code = 200;
 	return response_to_string(resp);
