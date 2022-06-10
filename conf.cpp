@@ -41,7 +41,6 @@ void syntax_error(conf_read_info *cri) {
 }
 
 void process_token(conf_read_info *cri, std::string token) {
-	std::cerr << token << "\n";
     if (cri->crs == CRS_EXPECT_BLOCK) {
 		if (token == "{") {
 			cri->crs = cri->next;
@@ -123,7 +122,6 @@ std::ostream &operator <<(std::ostream &out, const std::vector<std::string> &v) 
  * so "bla{}bloe;ble\nblie#comment" should become
  * {"bla", "{", "}", "bloe", ";", "ble", "blie"} */
 std::vector<std::string> tokenize(std::string conf) {
-	std::cout << "tokenize\n";
 	std::string::size_type end;
 	std::vector<std::string> tokens;
 
@@ -159,7 +157,7 @@ std::vector<std::string> tokenize(std::string conf) {
 }
 
 t_settings read_conf(char *conf_file) {
-	std::cout << "read_conf\n";
+	//std::cout << "read_conf\n";
 	conf_read_info cri = {};
     cri.crs = CRS_GLOBAL;
     std::ifstream input_stream(conf_file);
@@ -174,7 +172,7 @@ t_settings read_conf(char *conf_file) {
     std::vector<std::string> tokens = tokenize(sstr.str());
     input_stream.close();
 
-	std::cout << tokens << "\n";
+	//std::cout << tokens << "\n";
 
     for (std::vector<std::string>::iterator it = tokens.begin(); it < tokens.end(); it++) {
         process_token(&cri, *it);
