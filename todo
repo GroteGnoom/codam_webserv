@@ -1,7 +1,9 @@
-for response, look up html file at root given in config
-for response at /bla look at index.html in /bla
 
 test config parsing with more unit tests
 better error messages in config parsing
 parse requests
 dispatch request to threadpool
+cgi
+siege stress test
+POST
+DELETE
