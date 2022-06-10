@@ -3,19 +3,19 @@
 std::map<std::string, std::string>	get_current_pair(std::map<std::string, std::string> request_info, char *buffer, unsigned int *i) {
 	std::string	key;
 	std::string	value;
-	int			j = 0;
+	int			j = *i;
 
 	for (; buffer[j] != ':'; j++) {
 		key.push_back(buffer[j]);
 	}
-	if (buffer[j] == '\r')
-		j++;
-	j++;
+	j += 2;
 	for (; buffer[j] != '\n'; j++) {
 		value.push_back(buffer[j]);
 	}
-	*i += j;
+	*i = j;
 	request_info.insert(std::pair<std::string, std::string>(key, value));
+	key.clear();
+	value.clear();
 	return(request_info);
 }
 
@@ -31,11 +31,27 @@ std::map<std::string, std::string>	get_request_info(int socket) {
 		std::cout << "Failed to read, errno: " << errno << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	for (; buffer[i] != ' '; i++) {
+		value.push_back(buffer[i]);
+	}
+	i++;
 	request_info.insert(std::pair<std::string, std::string>("Method", value));
+	value.clear();
+	for (; buffer[i] != ' '; i++) {
+		value.push_back(buffer[i]);
+	}
+	i++;
 	request_info.insert(std::pair<std::string, std::string>("Request-URI", value));
-	request_info.insert(std::pair<std::string, std::string>("Version", value));
+	value.clear();
 	for (; buffer[i] != '\n'; i++) {
+		value.push_back(buffer[i]);
+	}
+	i++;
+	request_info.insert(std::pair<std::string, std::string>("Version", value));
+	value.clear();
+	while (buffer[i] != '\r') {
 		request_info = get_current_pair(request_info, buffer, &i);
+		i++;
 	}
 	return (request_info);
 }
