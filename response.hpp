@@ -1,4 +1,9 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
-std::string response();
+struct t_response {
+	std::string body;
+	int code;
+};
+
+std::string get_reponse();
 #endif
