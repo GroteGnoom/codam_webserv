@@ -7,6 +7,7 @@
 #include "socket.hpp"
 #include "request.hpp"
 #include "response.hpp"
+#include "cgi.hpp"
 
 /*
 * create a new socket
@@ -90,6 +91,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		std::string webpage = settings.root + request_info["Request-URI"] + "/index.html";
 		std::cout << "page: " << webpage << "\n";
 		std::string resp = get_reponse_from_page(webpage);
+		//resp = get_cgi();
 		write(new_socket, resp.c_str(), resp.size());
 		close(new_socket);
 	}
