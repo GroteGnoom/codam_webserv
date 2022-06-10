@@ -42,9 +42,11 @@ void syntax_error(conf_read_info *cri) {
 }
 
 void process_token(conf_read_info *cri, std::string token) {
-	char	buf[256];
-	char	*cwd = getcwd(buf, 256);
+	char		buf[256];
+	std::string	cwd;
 
+	cwd.append(getcwd(buf, 256));
+	cwd += "/";
     if (cri->crs == CRS_EXPECT_BLOCK) {
 		if (token == "{") {
 			cri->crs = cri->next;
