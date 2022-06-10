@@ -1,6 +1,8 @@
 #include <string>
 #include "response.hpp"
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 std::string response_to_string(t_response resp) {
 	std::stringstream code;
@@ -32,7 +34,19 @@ std::string get_reponse() {
 	//body += "<title>Welcome to webserv</title>\n";
 	//body += "<h1>Joehoe</h1>\n";
 	body += "hello!\n";
+
 	resp.body = body;
+	resp.code = 200;
+	return response_to_string(resp);
+}
+
+std::string get_reponse_from_page(std::string webpage) {
+	t_response resp;
+
+    std::ifstream input_stream(webpage);
+    std::ostringstream sstr;
+    sstr << input_stream.rdbuf();
+	resp.body = sstr.str();
 	resp.code = 200;
 	return response_to_string(resp);
 }

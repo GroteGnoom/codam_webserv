@@ -54,7 +54,6 @@ int	listening_socket(int socket, int backlog) {
 /*
 * create a new socket for the first connection request in the queue
 * returns new socket id on success      */
-
 int	accept_socket(int socket, sockaddr_in address) {
 	int new_socket;
 	int	address_len;
@@ -87,7 +86,8 @@ int	listen_to_new_socket(int port) {
 			exit(EXIT_FAILURE);
 		request_info = get_request_info(new_socket);
 		std::cout << request_info["User-Agent"] << std::endl;
-		write(new_socket, get_reponse().c_str(), get_reponse().size());
+		//write(new_socket, get_reponse().c_str(), get_reponse().size());
+		write(new_socket, get_reponse_from_page("/Users/dnoom/Documents/projects/webserv/tests/index.html").c_str(), get_reponse().size());
 		close(new_socket);
 	}
 }
