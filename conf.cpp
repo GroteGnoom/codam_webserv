@@ -1,5 +1,6 @@
 #include "conf.hpp"
 #include <sstream>
+#include <unistd.h>
 
 enum conf_read_state{
     CRS_GLOBAL,
@@ -41,6 +42,9 @@ void syntax_error(conf_read_info *cri) {
 }
 
 void process_token(conf_read_info *cri, std::string token) {
+	char	buf[256];
+	char	*cwd = getcwd(buf, 256);
+
     if (cri->crs == CRS_EXPECT_BLOCK) {
 		if (token == "{") {
 			cri->crs = cri->next;
@@ -88,15 +92,18 @@ void process_token(conf_read_info *cri, std::string token) {
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_ROOT) {
-		cri->settings.root = token;
+		cri->settings.root = cwd;
+		cri->settings.root += token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_ACCESS_LOG) {
-		cri->settings.access_log = token;
+		cri->settings.access_log = cwd;
+		cri->settings.access_log += token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_HTTP;
 	} else if (cri->crs == CRS_ERROR_LOG) {
-		cri->settings.error_log = token;
+		cri->settings.error_log = cwd;
+		cri->settings.error_log += token;
 		cri->crs = CRS_ERROR_LOG_LEVEL;
 	} else if (cri->crs == CRS_ERROR_LOG_LEVEL) {
 		cri->settings.error_level = token;
