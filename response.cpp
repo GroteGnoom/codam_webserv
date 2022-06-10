@@ -26,11 +26,12 @@ std::string get_reponse() {
 	t_response resp;
 	std::string body;
 
-	body += "<!DOCTYPE html>\n";
-	body += "<html>\n";
-	body += "<head>\n";
-	body += "<title>Welcome to webserv</title>\n";
-	body += "<h1>Joehoe</h1>\n";
+	//body += "<!DOCTYPE html>\n";
+	//body += "<html>\n";
+	//body += "<head>\n";
+	//body += "<title>Welcome to webserv</title>\n";
+	//body += "<h1>Joehoe</h1>\n";
+	body += "hello!\n";
 	resp.body = body;
 	resp.code = 200;
 	return response_to_string(resp);

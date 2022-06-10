@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 pkill nginx
 kill $(lsof -ti:8080)
 
@@ -15,15 +16,15 @@ events {
 }
 EOF
 
-nginx -c $PWD/test.conf 2> /dev/null
-
-curl 127.0.0.1:8080 > nginx_out 2> /dev/null
-
+nginx -c $PWD/test.conf
+curl 127.0.0.1:8080 > nginx_out
 pkill nginx
 kill $(lsof -ti:8080)
 
 pkill webserv
 ../webserv test.conf &
-curl 127.0.0.1:8080 > webserv_out 2> /dev/null
+sleep 1
+curl 127.0.0.1:8080 > webserv_out
+
 diff nginx_out webserv_out
 pkill webserv
