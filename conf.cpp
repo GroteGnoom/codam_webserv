@@ -48,6 +48,7 @@ void process_token(conf_read_info *cri, std::string token) {
 	std::string	cwd;
 
 	cwd.append(getcwd(buf, 256));
+	cwd += '/';
     if (cri->crs == CRS_EXPECT_BLOCK) {
 		if (token == "{") {
 			cri->crs = cri->next;
@@ -99,7 +100,7 @@ void process_token(conf_read_info *cri, std::string token) {
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_ROOT) {
-		if (token[0] == '/')
+		if (token[0] != '/')
 			cri->settings.root = cwd;
 		cri->settings.root += token;
 		cri->crs = CRS_EXPECT_SC;
