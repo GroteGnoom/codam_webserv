@@ -4,6 +4,14 @@
 #include <iostream>
 #include <fstream>
 
+std::string not_found() {
+	std::string r;
+	r += "HTTP/1.1 404 Not Found\n\n\n";
+	r += "<style> p.big { font-size: 50px; } </style>\n";
+	r += "<p class=\"big\">404 Not Found</p>\n";
+	return r;
+}
+
 std::string response_to_string(t_response resp) {
 	std::stringstream code;
 	code << resp.code;

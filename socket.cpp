@@ -91,7 +91,12 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		//std::cout << "root: " << settings.root << "\n";
 		std::string webpage = settings.root + request_info["Request-URI"] + "index.html";
 		std::cout << "page: " << webpage << "\n";
-		std::string resp = get_reponse_from_page(webpage);
+		std::string resp;
+		try {
+			resp = get_reponse_from_page(webpage);
+		} catch (...) {
+			resp = not_found();
+		}
 		//resp = get_cgi();
 		write(new_socket, resp.c_str(), resp.size());
 		close(new_socket);

@@ -7,3 +7,4 @@ cgi
 siege stress test
 POST
 DELETE
+clean up open sockets before exit?
