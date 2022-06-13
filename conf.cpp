@@ -11,6 +11,7 @@ enum conf_read_state{
     CRS_ERROR_LOG_LEVEL,
     CRS_SERVER_LISTEN,
     CRS_SERVER_ROOT,
+	CRS_SERVER_CGI,
 	CRS_ACCESS_LOG,
 	CRS_EXPECT_SC,
 	CRS_EXPECT_BLOCK,
@@ -86,6 +87,8 @@ void process_token(conf_read_info *cri, std::string token) {
 			cri->crs = CRS_SERVER_LISTEN;
 		} else if (token == "root") {
 			cri->crs = CRS_SERVER_ROOT;
+		} else if (token == "cgi") {
+			cri->crs = CRS_SERVER_CGI;
 		} else if (token == "}") {
 			cri->crs = CRS_HTTP;
 		} else syntax_error(cri);
@@ -96,6 +99,10 @@ void process_token(conf_read_info *cri, std::string token) {
 	} else if (cri->crs == CRS_SERVER_ROOT) {
 		//cri->settings.root = cwd;
 		cri->settings.root += token;
+		cri->crs = CRS_EXPECT_SC;
+		cri->next = CRS_SERVER;
+	} else if (cri->crs == CRS_SERVER_CGI) {
+		cri->settings.cgi_path = token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_ACCESS_LOG) {
