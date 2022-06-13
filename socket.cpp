@@ -98,7 +98,6 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		pfd.revents = 0;
 		new_socket = accept_socket(server_socket, address);
 		fcntl(new_socket, F_SETFL, O_NONBLOCK);
-		std::cout << "after accept\n";
 		if (new_socket == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
 		request_info = get_request_info(new_socket);
@@ -113,7 +112,8 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		} catch (...) {
 			resp = not_found();
 		}
-		//resp = get_cgi();
+		if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].substr(request_info["Request-URI"].size() - 3, request_info["Request-URI"].size()) == ".py")
+			resp = get_cgi();
 		write(new_socket, resp.c_str(), resp.size());
 		close(new_socket);
 	}
