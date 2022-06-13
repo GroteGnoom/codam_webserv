@@ -24,7 +24,7 @@ std::string response_to_string(t_response resp) {
 	r += "Content-Type: text/html\n";
 	r += "Content-Length: " + length.str() + "\n";
 	//r += "Last-Modified: Thu, 09 Jun 2022 12:15:23 GMT\n";
-	r += "Connection: keep-alive\n";
+	r += "Connection: close\n";
 	//r += "ETag: \"62a1e45b-267\"\n";
 	//r += "Accept-Ranges: bytes\n";
 	r += "\n";

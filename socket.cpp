@@ -10,6 +10,8 @@
 #include "cgi.hpp"
 #include <fcntl.h>
 #include <poll.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 /*
 * create a new socket
@@ -30,11 +32,16 @@ int	create_socket(void) {
 * bind a port to a socket
 * returns 1 on success      */
 
-int	identify_socket(int socket, int port, sockaddr_in address) {
+int	identify_socket(int socket, int port, sockaddr_in &address) {
 	memset((char *)&address, 0, sizeof(address));
-	address.sin_family = AF_INET;					//adress family used in creating socket
-	address.sin_addr.s_addr = htonl(INADDR_ANY);	//adress of this socket, this machines IP adress
-	address.sin_port = htons(port);					//port number
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = inet_addr("127.0.0.1");
+	address.sin_port = htons(port); 
+	const int enable = 1;
+	if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+		std::cout << "error! setsockopt(SO_REUSEADDR) failed\n";
+		return (EXIT_FAILURE);
+	}
 	if (bind(socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
         std::cout << "Failed to bind to port " << port << ", errno: " << errno << std::endl;	
 		return (EXIT_FAILURE);
