@@ -94,7 +94,7 @@ void process_token(conf_read_info *cri, std::string token) {
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_ROOT) {
-		cri->settings.root = cwd;
+		//cri->settings.root = cwd;
 		cri->settings.root += token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;

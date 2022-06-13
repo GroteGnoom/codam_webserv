@@ -20,6 +20,7 @@ std::string response_to_string(t_response resp) {
 	//r += "ETag: \"62a1e45b-267\"\n";
 	//r += "Accept-Ranges: bytes\n";
 	r += "\n";
+	std::cout << "body:" << resp.body << "\n";
 	r += resp.body;
 	return r;
 }
@@ -43,9 +44,14 @@ std::string get_reponse() {
 std::string get_reponse_from_page(std::string webpage) {
 	t_response resp;
 
-    std::ifstream input_stream(webpage);
-    std::ostringstream sstr;
+	std::ifstream input_stream(webpage);
+	if (!input_stream.is_open()) {
+		std::cerr << "could not open webpage\n";
+		throw std::exception();
+	}
+	std::ostringstream sstr;
     sstr << input_stream.rdbuf();
+	//std::cout << "body string:" << sstr.str() << "\n";
 	resp.body = sstr.str();
 	resp.code = 200;
 	return response_to_string(resp);
