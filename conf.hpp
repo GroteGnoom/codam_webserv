@@ -11,6 +11,7 @@ struct t_settings {
     std::string error_log;
     std::string error_level;
     std::string access_log;
+	std::string index;
 };
 
 t_settings read_conf(char *conf_file);

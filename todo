@@ -8,3 +8,6 @@ siege stress test
 POST
 DELETE
 clean up open sockets before exit?
+
+send a big file:
+	make page to upload a file
