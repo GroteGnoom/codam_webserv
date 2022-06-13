@@ -1,4 +1,5 @@
 #include "request.hpp"
+#include <poll.h>
 
 std::map<std::string, std::string>	get_current_pair(std::map<std::string, std::string> request_info, char *buffer, unsigned int *i) {
 	std::string		key;
@@ -52,6 +53,11 @@ std::map<std::string, std::string>	get_request_info(int socket) {
 	std::map<std::string, std::string>	request_info;
 	std::string							value;
 
+	struct pollfd pfd;
+	pfd.events = POLL_IN;
+	pfd.revents = 0;
+	pfd.fd = socket;
+	poll(&pfd, 1, -1);
 	read_ret = read(socket, buffer, 30000);
 	if (read_ret < 0) {
 		std::cout << "Failed to read, errno: " << errno << std::endl;

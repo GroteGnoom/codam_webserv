@@ -8,6 +8,8 @@
 #include "request.hpp"
 #include "response.hpp"
 #include "cgi.hpp"
+#include <fcntl.h>
+#include <poll.h>
 
 /*
 * create a new socket
@@ -63,6 +65,8 @@ int	accept_socket(int socket, sockaddr_in address) {
 	new_socket = accept(socket, (struct sockaddr *)&address, (socklen_t *)&address_len);
 	if (new_socket < 0) {
         std::cout << "Failed to grab connection, errno: " << errno << std::endl;
+        std::cout << " errno: " << EWOULDBLOCK << std::endl;
+		perror("");
 		return (EXIT_FAILURE);
 	}
 	return (new_socket);
@@ -75,14 +79,26 @@ int	listen_to_new_socket(int port, t_settings settings) {
 	int									new_socket;
 	std::map<std::string, std::string>	request_info;
 
+	struct pollfd pfd;
 	if (server_socket == EXIT_FAILURE)
 		exit(EXIT_FAILURE);
 	if (identify_socket(server_socket, port, address) == EXIT_FAILURE)
 		exit(EXIT_FAILURE);
+	fcntl(server_socket, F_SETFL, O_NONBLOCK);
 	if (listening_socket(server_socket, backlog) == EXIT_FAILURE)
 		exit(EXIT_FAILURE);
+	pfd.events = POLLIN;
+	pfd.revents = 0;
+	pfd.fd = server_socket;
 	while (1) {
+		poll(&pfd, 1, 10);
+		if (!(pfd.revents & POLLIN)) {
+			continue;
+		}
+		pfd.revents = 0;
 		new_socket = accept_socket(server_socket, address);
+		fcntl(new_socket, F_SETFL, O_NONBLOCK);
+		std::cout << "after accept\n";
 		if (new_socket == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
 		request_info = get_request_info(new_socket);
