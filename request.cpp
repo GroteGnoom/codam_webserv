@@ -46,12 +46,13 @@ std::map<std::string, std::string>	get_first_line(std::map<std::string, std::str
 	return (request_info);
 }
 
-std::map<std::string, std::string>	get_request_info(int socket) {
+t_request	get_request_info(int socket) {
 	char								buffer[30000] = {0};
 	long								read_ret;
 	unsigned int 						i = 0;
 	std::map<std::string, std::string>	request_info;
 	std::string							value;
+	t_request							request;
 
 	struct pollfd pfd;
 	pfd.events = POLL_IN;
@@ -68,5 +69,8 @@ std::map<std::string, std::string>	get_request_info(int socket) {
 		request_info = get_current_pair(request_info, buffer, &i);
 		i++;
 	}
-	return (request_info);
+	i++;
+	request.headers = request_info;
+	request.body = get_body(buffer, i);
+	return (request);
 }

@@ -84,6 +84,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 	struct sockaddr_in					address;
 	int									backlog = 1000;	//how many requests can be backlogged
 	int									new_socket;
+	t_request							request;
 	std::map<std::string, std::string>	request_info;
 
 	struct pollfd pfd;
@@ -107,9 +108,8 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		fcntl(new_socket, F_SETFL, O_NONBLOCK);
 		if (new_socket == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
-		request_info = get_request_info(new_socket);
-		//write(new_socket, get_reponse().c_str(), get_reponse().size());
-		//std::cout << "root: " << settings.root << "\n";
+		request = get_request_info(new_socket);
+		request_info = request.headers;
 		std::string webpage;
 		if (request_info["Request-URI"].find('.') == std::string::npos) {
 			if (settings.index.size()) {
