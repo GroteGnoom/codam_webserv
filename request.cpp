@@ -1,18 +1,19 @@
 #include "request.hpp"
 #include <poll.h>
 
-std::map<std::string, std::string>	get_current_pair(std::map<std::string, std::string> request_info, char *buffer, unsigned int *i) {
+std::map<std::string, std::string>	get_current_pair(std::map<std::string, std::string> request_info, char *buffer, unsigned int *i, long read_ret) {
 	std::string		key;
 	std::string		value;
 	unsigned int	j = *i;
 
-	for (; buffer[j] != ':'; j++) {
+	for (; buffer[j] != ':' && j < read_ret; j++) {
 		key.push_back(buffer[j]);
 	}
 	j += 2;
-	for (; buffer[j] != '\n'; j++) {
+	for (; buffer[j] != '\r' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
 	}
+	j++;
 	*i = j;
 	request_info.insert(std::pair<std::string, std::string>(key, value));
 	key.clear();
@@ -20,26 +21,26 @@ std::map<std::string, std::string>	get_current_pair(std::map<std::string, std::s
 	return(request_info);
 }
 
-std::map<std::string, std::string>	get_first_line(std::map<std::string, std::string> request_info, char *buffer, unsigned int *i) {
+std::map<std::string, std::string>	get_first_line(std::map<std::string, std::string> request_info, char *buffer, unsigned int *i, long read_ret) {
 	std::string		value;
 	unsigned int	j = *i;
 	
-	for (; buffer[j] != ' '; j++) {
+	for (; buffer[j] != ' ' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
 	}
 	j++;
 	request_info.insert(std::pair<std::string, std::string>("Method", value));
 	value.clear();
-	for (; buffer[j] != ' '; j++) {
+	for (; buffer[j] != ' ' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
 	}
 	j++;
 	request_info.insert(std::pair<std::string, std::string>("Request-URI", value));
 	value.clear();
-	for (; buffer[j] != '\n'; j++) {
+	for (; buffer[j] != '\r' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
 	}
-	j++;
+	j += 2;
 	request_info.insert(std::pair<std::string, std::string>("Version", value));
 	value.clear();
 	*i = j;
@@ -64,13 +65,13 @@ t_request	get_request_info(int socket) {
 		std::cout << "Failed to read, errno: " << errno << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	request_info = get_first_line(request_info, buffer, &i);
+	request_info = get_first_line(request_info, buffer, &i, read_ret);
 	while (buffer[i] != '\r') {
-		request_info = get_current_pair(request_info, buffer, &i);
+		request_info = get_current_pair(request_info, buffer, &i, read_ret);
 		i++;
 	}
 	i++;
 	request.headers = request_info;
-	request.body = get_body(buffer, i);
+	request.body = get_body(buffer, i, read_ret);
 	return (request);
 }
