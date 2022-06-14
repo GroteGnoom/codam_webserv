@@ -110,7 +110,16 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		request_info = get_request_info(new_socket);
 		//write(new_socket, get_reponse().c_str(), get_reponse().size());
 		//std::cout << "root: " << settings.root << "\n";
-		std::string webpage = settings.root + request_info["Request-URI"] + "/index.html";
+		std::string webpage;
+		if (request_info["Request-URI"].find('.') == std::string::npos) {
+			if (settings.index.size()) {
+				webpage = settings.root + request_info["Request-URI"] + settings.index;
+			} else {
+				webpage = settings.root + request_info["Request-URI"] + "/index.html";
+			}
+		} else {
+			webpage = settings.root + request_info["Request-URI"];
+		}
 		std::cout << "page: " << webpage << "\n";
 		std::string resp;
 		try {
