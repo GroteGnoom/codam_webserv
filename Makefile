@@ -4,7 +4,7 @@ INC = conf.hpp socket.hpp request.hpp response.hpp cgi.hpp
 OBJDIR = obj
 
 CC=c++
-FLAGS = -Wall -Wextra -Werror -fsanitize=address
+FLAGS = -Wall -Wextra -Werror -fsanitize=address -g
 
 OBJ = $(SRC:%.cpp=$(OBJDIR)/%.o)
 
