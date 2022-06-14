@@ -36,7 +36,7 @@ int	identify_socket(int socket, int port, sockaddr_in &address) {
 	memset((char *)&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = inet_addr("127.0.0.1");
-	address.sin_port = htons(port); 
+	address.sin_port = htons(port);
 	const int enable = 1;
 	if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
 		std::cout << "error! setsockopt(SO_REUSEADDR) failed\n";
