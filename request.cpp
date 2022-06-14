@@ -16,7 +16,6 @@ std::map<std::string, std::string>	get_current_pair(std::map<std::string, std::s
 	j++;
 	*i = j;
 	request_info.insert(std::pair<std::string, std::string>(key, value));
-	std::cout << key << " " << request_info[key] << "\n";
 	key.clear();
 	value.clear();
 	return(request_info);
@@ -31,7 +30,6 @@ std::map<std::string, std::string>	get_first_line(std::map<std::string, std::str
 	}
 	j++;
 	request_info.insert(std::pair<std::string, std::string>("Method", value));
-	std::cout << value << "\n";
 	value.clear();
 	for (; buffer[j] != ' ' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
@@ -71,8 +69,6 @@ t_request	get_request_info(int socket) {
 	while (buffer[i] != '\r' && i < read_ret) {
 		request_info = get_current_pair(request_info, buffer, &i, read_ret);
 		i++;
-		std::cout << "buffer: " << buffer[i] << "\n";
-		std::cout << "i: " << i << "\n";
 	}
 	i++;
 	request.headers = request_info;

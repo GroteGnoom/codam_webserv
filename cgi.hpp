@@ -1,3 +1,5 @@
 #pragma once
 #include <string>
-std::string get_cgi();
+#include "request.hpp"
+
+std::string get_cgi(t_request request);
