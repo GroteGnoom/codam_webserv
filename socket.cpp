@@ -8,6 +8,7 @@
 #include "request.hpp"
 #include "response.hpp"
 #include "cgi.hpp"
+#include "delete.hpp"
 #include <fcntl.h>
 #include <poll.h>
 #include <netinet/in.h>
@@ -132,20 +133,26 @@ int	listen_to_new_socket(int port, t_settings settings) {
 				webpage = settings.root + request_info["Request-URI"] + "/index.html";
 			}
 		} else {
-			webpage = settings.root + request_info["Request-URI"] + "/index.html";
+			webpage = settings.root + request_info["Request-URI"];
 		}
 		std::cout << "page: " << webpage << "\n";
 		std::string resp;
-		
+
 		if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].find(".py") != std::string::npos) {
 			if (request.headers["Method"] == "GET") {
 				resp = get_cgi(request);
-			} else {
-				resp = get_post(request);
 			}
 		}
 		else try {
-			resp = get_reponse_from_page(webpage);
+			if (request.headers["Method"] == "GET") {
+				resp = get_reponse_from_page(webpage);
+			}
+			else if (request.headers["Method"] == "DELETE") {
+				resp = get_delete(request, webpage);
+			}
+			else if (request.headers["Method"] == "POST") {
+				resp = get_post(request);
+			}
 		} catch (...) {
 			resp = not_found();
 		}
