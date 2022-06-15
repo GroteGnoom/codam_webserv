@@ -148,7 +148,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 				resp = get_reponse_from_page(webpage);
 			}
 			else if (request.headers["Method"] == "DELETE") {
-				resp = get_delete(request, webpage);
+				resp = get_delete(webpage);
 			}
 			else if (request.headers["Method"] == "POST") {
 				resp = get_post(request);
