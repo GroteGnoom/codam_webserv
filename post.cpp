@@ -34,7 +34,7 @@ std::string get_post(t_request request) {
 	close(fd);
 	std::cout << "done!\n";
 	t_response response;
-	response.body = "your file has been saved!\n";
+	response.body = "your file has been saved!\r\n";
 	response.code = 200;
 	return response_to_string(response);
 }
