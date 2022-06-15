@@ -12,6 +12,7 @@
 #include <poll.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "post.hpp"
 
 /*
 * create a new socket
@@ -126,7 +127,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 			if (request.headers["Method"] == "GET") {
 				resp = get_cgi(request);
 			} else {
-				resp = get_cgi_post(request);
+				resp = get_post(request);
 			}
 		}
 		else try {

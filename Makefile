@@ -1,6 +1,6 @@
 NAME = webserv
-SRC = main.cpp conf.cpp socket.cpp request.cpp response.cpp cgi.cpp body.cpp
-INC = conf.hpp socket.hpp request.hpp response.hpp cgi.hpp
+SRC = main.cpp conf.cpp socket.cpp request.cpp response.cpp cgi.cpp body.cpp post.cpp
+INC = conf.hpp socket.hpp request.hpp response.hpp cgi.hpp post.hpp
 OBJDIR = obj
 
 CC=c++

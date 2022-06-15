@@ -28,7 +28,6 @@ std::string get_cgi_post(t_request request) {
 	//int line1 = request.body.find("\n", 10);
 	//request.body = request.body.substr(line1, request.body.size() - line1);
 	request.body = request.body.substr(1, request.body.size() - 1);
-	request.body="first_name=bla&last_name=bloe";
 	setenv("CONTENT_LENGTH", request.headers["Content-Length"].c_str(), 1);
 	setenv("CONTENT_TYPE", request.headers["Content-Type"].c_str(), 1);
 	int inpipe[2];
