@@ -12,6 +12,7 @@
 #include <poll.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <set>
 #include "post.hpp"
 
 /*
@@ -83,12 +84,12 @@ int	accept_socket(int socket, sockaddr_in address) {
 int	listen_to_new_socket(int port, t_settings settings) {
 	int									server_socket = create_socket();
 	struct sockaddr_in					address;
-	int									backlog = 1000;	//how many requests can be backlogged
-	int									new_socket;
+	int									backlog = SOMAXCONN;	//how many requests can be backlogged
 	t_request							request;
 	std::map<std::string, std::string>	request_info;
+	std::set<int>						connections;
 
-	struct pollfd pfd;
+	struct pollfd pfd[backlog];
 	if (server_socket == EXIT_FAILURE)
 		exit(EXIT_FAILURE);
 	if (identify_socket(server_socket, port, address) == EXIT_FAILURE)
@@ -96,21 +97,33 @@ int	listen_to_new_socket(int port, t_settings settings) {
 	fcntl(server_socket, F_SETFL, O_NONBLOCK);
 	if (listening_socket(server_socket, backlog) == EXIT_FAILURE)
 		exit(EXIT_FAILURE);
-	pfd.events = POLLIN;
-	pfd.revents = 0;
-	pfd.fd = server_socket;
+	pfd[0].events = POLLIN;
+	pfd[0].revents = 0;
+	pfd[0].fd = server_socket;
+
 	while (1) {
-		poll(&pfd, 1, 10);
-		if (!(pfd.revents & POLLIN)) {
+		unsigned int i = 1;
+		for (std::set<int>::iterator iter = connections.begin(); iter != connections.end(); iter++) {
+			pfd[i].fd = *iter;
+			pfd[i].events = POLLIN;
+			pfd[i].revents = 0;
+			i++;
+		}
+		unsigned int	poll_size = 1 + connections.size();
+		poll(pfd, poll_size, -1);
+		if (!(pfd[0].revents & POLLIN)) {
 			continue;
 		}
-		pfd.revents = 0;
+		pfd[0].revents = 0;
+
+		int	new_socket;
 		new_socket = accept_socket(server_socket, address);
 		fcntl(new_socket, F_SETFL, O_NONBLOCK);
 		if (new_socket == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
 		request = get_request_info(new_socket);
 		request_info = request.headers;
+
 		std::string webpage;
 		if (request_info["Request-URI"].find('.') == std::string::npos) {
 			if (settings.index.size()) {
@@ -123,6 +136,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		}
 		std::cout << "page: " << webpage << "\n";
 		std::string resp;
+		
 		if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].find(".py") != std::string::npos) {
 			if (request.headers["Method"] == "GET") {
 				resp = get_cgi(request);
@@ -136,6 +150,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 			resp = not_found();
 		}
 		write(new_socket, resp.c_str(), resp.size());
-		close(new_socket);
+		connections.insert(new_socket);
+		// close(new_socket);
 	}
 }
