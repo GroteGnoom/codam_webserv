@@ -16,6 +16,7 @@ std::map<std::string, std::string>	get_current_pair(std::map<std::string, std::s
 	j++;
 	*i = j;
 	request_info.insert(std::pair<std::string, std::string>(key, value));
+	std::cout << key << ": " << value << "\n";
 	key.clear();
 	value.clear();
 	return(request_info);
@@ -48,7 +49,7 @@ std::map<std::string, std::string>	get_first_line(std::map<std::string, std::str
 }
 
 t_request	get_request_info(int socket) {
-	char								buffer[30000] = {0};
+	char								buffer[300000] = {0};
 	long								read_ret;
 	unsigned int 						i = 0;
 	std::map<std::string, std::string>	request_info;
@@ -60,11 +61,13 @@ t_request	get_request_info(int socket) {
 	pfd.revents = 0;
 	pfd.fd = socket;
 	poll(&pfd, 1, -1);
-	read_ret = read(socket, buffer, 30000);
+	read_ret = read(socket, buffer, 300000);
 	if (read_ret < 0) {
 		std::cout << "Failed to read, errno: " << errno << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	std::string whole_request(buffer, read_ret);
+	request.whole_request =  whole_request;
 	request_info = get_first_line(request_info, buffer, &i, read_ret);
 	while (buffer[i] != '\r' && i < read_ret) {
 		request_info = get_current_pair(request_info, buffer, &i, read_ret);

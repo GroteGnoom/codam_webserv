@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 struct t_request {
+	std::string whole_request;
 	std::map<std::string, std::string> headers;
 	std::string body;
 };

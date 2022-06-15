@@ -122,8 +122,13 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		}
 		std::cout << "page: " << webpage << "\n";
 		std::string resp;
-		if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].substr(request_info["Request-URI"].size() - 3, request_info["Request-URI"].size()) == ".py")
-			resp = get_cgi(request);
+		if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].substr(request_info["Request-URI"].size() - 3, request_info["Request-URI"].size()) == ".py") {
+			if (request.headers["Method"] == "GET") {
+				resp = get_cgi(request);
+			} else {
+				resp = get_cgi_post(request);
+			}
+		}
 		else try {
 			resp = get_reponse_from_page(webpage);
 		} catch (...) {

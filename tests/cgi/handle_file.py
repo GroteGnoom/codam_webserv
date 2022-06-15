@@ -1,15 +1,20 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 import cgi, os
 import cgitb; cgitb.enable()
-form = cgi.FieldStorage()
+cgi.test()
+form = cgi.FieldStorage(environ="post")
 # Get filename here.
+print("form in handle_file:", form)
+exit();
 fileitem = form['filename']
+print(form['filename'])
+print(form['filename'].value)
+filename = form['filename'].value
 # Test if the file was uploaded
-if fileitem.filename:
+if filename:
    # strip leading path from file name to avoid
    # directory traversal attacks
-   fn = os.path.basename(fileitem.filename)
-   fn = os.path.basename(fileitem.filename.replace("\\", "/" ))
+   fn = os.path.basename(filename.replace("\\", "/" ))
    open('/tmp/' + fn, 'wb').write(fileitem.file.read())
    message = 'The file "' + fn + '" was uploaded successfully'
 else:
