@@ -118,11 +118,11 @@ int	listen_to_new_socket(int port, t_settings settings) {
 				webpage = settings.root + request_info["Request-URI"] + "/index.html";
 			}
 		} else {
-			webpage = settings.root + request_info["Request-URI"];
+			webpage = settings.root + request_info["Request-URI"] + "/index.html";
 		}
 		std::cout << "page: " << webpage << "\n";
 		std::string resp;
-		if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].substr(request_info["Request-URI"].size() - 3, request_info["Request-URI"].size()) == ".py") {
+		if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].find(".py") != std::string::npos) {
 			if (request.headers["Method"] == "GET") {
 				resp = get_cgi(request);
 			} else {

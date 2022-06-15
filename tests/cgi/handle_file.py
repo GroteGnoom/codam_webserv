@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import cgi, os
 import cgitb; cgitb.enable()
-cgi.test()
+# cgi.test()
 form = cgi.FieldStorage(environ="post")
 # Get filename here.
 print("form in handle_file:", form)

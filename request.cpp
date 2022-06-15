@@ -31,12 +31,14 @@ std::map<std::string, std::string>	get_first_line(std::map<std::string, std::str
 	}
 	j++;
 	request_info.insert(std::pair<std::string, std::string>("Method", value));
+	std::cout << "Method: " << value << std::endl;
 	value.clear();
 	for (; buffer[j] != ' ' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
 	}
 	j++;
 	request_info.insert(std::pair<std::string, std::string>("Request-URI", value));
+	std::cout << "Request-URI: " << value << std::endl;
 	value.clear();
 	for (; buffer[j] != '\r' && j < read_ret; j++) {
 		value.push_back(buffer[j]);

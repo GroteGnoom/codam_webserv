@@ -4,8 +4,12 @@
 std::string get_cgi(t_request request) {
 	char buffer[1024];
 	std::string result;
-    std::string command = "QUERY_STRING=\"first_name=bla&last_name=bloe\" python3 tests/cgi";
-    command.append(request.headers["Request-URI"]);
+
+	int			question_mark_pos = request.headers["Request-URI"].find('?');	
+	std::string	query = request.headers["Request-URI"].substr(question_mark_pos + 1, request.headers["Request-URI"].size() - question_mark_pos - 1);
+    std::string command = "QUERY_STRING=\"" + query + "\" python3 tests";
+
+    command.append(request.headers["Request-URI"].substr(0, question_mark_pos));
 	FILE* pipe = popen(command.c_str(), "r"); //command is passed through the shell
     if (!pipe) throw std::runtime_error("popen() failed!");
     try {
@@ -24,7 +28,7 @@ std::string get_cgi_post(t_request request) {
 	//int line1 = request.body.find("\n", 10);
 	//request.body = request.body.substr(line1, request.body.size() - line1);
 	request.body = request.body.substr(1, request.body.size() - 1);
-	request.body="first_name=bla&last_name=bloe"
+	request.body="first_name=bla&last_name=bloe";
 	setenv("CONTENT_LENGTH", request.headers["Content-Length"].c_str(), 1);
 	setenv("CONTENT_TYPE", request.headers["Content-Type"].c_str(), 1);
 	int inpipe[2];
