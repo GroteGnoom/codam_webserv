@@ -9,9 +9,11 @@ POST
 DELETE
 
 send a big file:
-	make page to upload a file
+	check boundary correctly?
+	use file name given by user
 	CGI GET uses a query string, but
 	CGI POST passes its information via standard input (https://stackoverflow.com/questions/3557831/how-to-use-stdin-on-perl-cgi)
 	https://stackoverflow.com/questions/464040/how-are-post-and-get-variables-handled-in-python
+	
 
 

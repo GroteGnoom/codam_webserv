@@ -10,7 +10,7 @@ struct t_request {
 	std::string body;
 };
 
-std::string get_body(char *buffer, unsigned int i, long read_ret);
+std::string get_body(const char *buffer, unsigned int i, long read_ret);
 std::map<std::string, std::string>	get_current_pair(char *buffer, int *i);
 t_request get_request_info(int socket);
 
