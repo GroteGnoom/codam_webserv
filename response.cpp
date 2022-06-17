@@ -28,7 +28,7 @@ std::string response_to_string(t_response resp) {
 	//r += "ETag: \"62a1e45b-267\"\n";
 	//r += "Accept-Ranges: bytes\n";
 	r += "\n";
-	std::cout << "body:" << resp.body << "\n";
+	//std::cout << "body:" << resp.body << "\n";
 	r += resp.body;
 	return r;
 }
