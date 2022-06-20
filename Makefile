@@ -22,6 +22,12 @@ $(OBJDIR):
 test: all
 	cd tests && ./tests.sh
 
+siege: all
+	./webserv > output &
+	sleep 1
+	siege 127.0.0.1:8080 -t1s
+	pkill webserv
+
 clean:
 	rm -f $(OBJ)
 
