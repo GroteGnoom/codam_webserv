@@ -9,6 +9,7 @@ struct t_server {
     std::string root;
     std::string cgi_path;
 	std::string index;
+	std::string name;
 };
 
 struct t_settings {
