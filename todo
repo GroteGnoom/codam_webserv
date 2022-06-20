@@ -7,6 +7,7 @@ cgi
 siege stress test
 POST
 DELETE
+use hostname - maybe check this by putting two servers on the same port with different hostnames
 
 send a big file:
 	check boundary correctly?
@@ -15,5 +16,7 @@ send a big file:
 	CGI POST passes its information via standard input (https://stackoverflow.com/questions/3557831/how-to-use-stdin-on-perl-cgi)
 	https://stackoverflow.com/questions/464040/how-are-post-and-get-variables-handled-in-python
 	
+the subject mentions default servers: http://nginx.org/en/docs/http/request_processing.html
 
+limit client body size
 
