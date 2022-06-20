@@ -4,14 +4,18 @@
 #include <iostream>
 #include <fstream>
 
-struct t_settings {
+struct t_server {
     int listen_port;
     std::string root;
     std::string cgi_path;
+	std::string index;
+};
+
+struct t_settings {
     std::string error_log;
     std::string error_level;
     std::string access_log;
-	std::string index;
+	std::vector<t_server> servers;
 };
 
 t_settings read_conf(char *conf_file);

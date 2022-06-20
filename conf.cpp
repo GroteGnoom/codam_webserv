@@ -80,6 +80,8 @@ void process_token(conf_read_info *cri, std::string token) {
 		} else if (token == "server") {
 			cri->crs = CRS_EXPECT_BLOCK;
 			cri->next = CRS_SERVER;
+			std::cout << "adding server\n";
+			cri->settings.servers.resize(cri->settings.servers.size() + 1);
 		} else if (token == "}") {
 			cri->crs = CRS_GLOBAL;
 		} else syntax_error(cri);
@@ -96,21 +98,21 @@ void process_token(conf_read_info *cri, std::string token) {
 			cri->crs = CRS_HTTP;
 		} else syntax_error(cri);
 	} else if (cri->crs == CRS_SERVER_LISTEN) {
-		cri->settings.listen_port = atoi( token.c_str() );
+		cri->settings.servers[0].listen_port = atoi( token.c_str() );
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_ROOT) {
 		if (token[0] != '/')
-			cri->settings.root = cwd;
-		cri->settings.root += token;
+			cri->settings.servers[0].root = cwd;
+		cri->settings.servers[0].root += token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_CGI) {
-		cri->settings.cgi_path = token;
+		cri->settings.servers[0].cgi_path = token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_INDEX) {
-		cri->settings.index = token;
+		cri->settings.servers[0].index = token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_ACCESS_LOG) {

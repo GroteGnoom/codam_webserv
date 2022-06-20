@@ -127,13 +127,13 @@ int	listen_to_new_socket(int port, t_settings settings) {
 
 		std::string webpage;
 		if (request_info["Request-URI"].find('.') == std::string::npos) {
-			if (settings.index.size()) {
-				webpage = settings.root + request_info["Request-URI"] + settings.index;
+			if (settings.servers[0].index.size()) {
+				webpage = settings.servers[0].root + request_info["Request-URI"] + settings.servers[0].index;
 			} else {
-				webpage = settings.root + request_info["Request-URI"] + "/index.html";
+				webpage = settings.servers[0].root + request_info["Request-URI"] + "/index.html";
 			}
 		} else {
-			webpage = settings.root + request_info["Request-URI"];
+			webpage = settings.servers[0].root + request_info["Request-URI"];
 		}
 		std::cout << "page: " << webpage << "\n";
 		std::string resp;
