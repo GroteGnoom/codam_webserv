@@ -7,7 +7,7 @@ cgi
 siege stress test
 POST
 DELETE
-use hostname - maybe check this by putting two servers on the same port with different hostnames
+use hostname - maybe check this by putting two servers on the same port with different hostnames -- no, using the same port multiple times should not work
 the default error page needs to be able to be set in the configuration
 -- for exapmle with:   error_page 404 403 500 503 /error-page.html;
 
@@ -22,4 +22,15 @@ the subject mentions default servers: http://nginx.org/en/docs/http/request_proc
 
 limit client body size in configuration
 -- then do post requests smaller or larger than body limit. 
+
+test configuration with muliple routes
+
+define list of accepted methods for route
+
+do a redirection
+
+turn directory listing on and off
+
+test unknown requests, like not GET OR POST, but SOMETHINGRANDOM
+
 
