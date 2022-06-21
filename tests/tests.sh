@@ -4,6 +4,7 @@ pkill nginx
 kill $(lsof -ti:8080)
 
 cat << EOF > test.conf
+#THIS FILE IS AUTO GENERATED!
 error_log $PWD/nginxerror.log warn;
 http {
     access_log $PWD/nginxaccess.log;

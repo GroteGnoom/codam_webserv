@@ -15,7 +15,7 @@ struct t_server {
 	std::string cgi_path;
 	std::string index;
 	std::string name;
-	std::vector<t_location> location;
+	std::vector<t_location> locations;
 };
 
 struct t_settings {

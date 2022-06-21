@@ -19,6 +19,7 @@ enum conf_read_state{
 	CRS_ACCESS_LOG,
 	CRS_EXPECT_SC,
 	CRS_EXPECT_BLOCK,
+	CRS_AUTOINDEX,
 };
 
 struct conf_read_info {
@@ -94,6 +95,7 @@ void process_token(conf_read_info *cri, std::string token) {
 			cri->crs = CRS_SERVER_ROOT;
 		} else if (token == "location") {
 			cri->crs = CRS_LOCATION_STRING;
+			cri->settings.servers[0].locations.resize(cri->settings.servers[0].locations.size() + 1);
 		} else if (token == "server_name") {
 			cri->crs = CRS_SERVER_NAME;
 		} else if (token == "cgi") {
@@ -138,6 +140,25 @@ void process_token(conf_read_info *cri, std::string token) {
 		cri->settings.error_level = token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_GLOBAL;
+	} else if (cri->crs == CRS_LOCATION_STRING) {
+		cri->settings.servers[0].locations[0].location = token;
+		cri->crs = CRS_EXPECT_BLOCK;
+		cri->next = CRS_LOCATION;
+	} else if (cri->crs == CRS_LOCATION) {
+		if (token == "autoindex")
+			cri->crs = CRS_AUTOINDEX;
+		} else if (token == "}") {
+			cri->crs = CRS_SERVER;
+	} else if (cri->crs == CRS_AUTOINDEX) {
+		if (token == "on") {
+			cri->settings.servers[0].locations[0].autoindex = true;
+			cri->crs = CRS_EXPECT_SC;
+			cri->next = CRS_LOCATION;
+		} else if (token == "off") {
+			cri->settings.servers[0].locations[0].autoindex = false;
+			cri->crs = CRS_EXPECT_SC;
+			cri->next = CRS_LOCATION;
+		}
 	}
 }
 
