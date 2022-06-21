@@ -62,9 +62,12 @@ t_request	get_request_info(int socket) {
 
 	bool read_once = 0;
 	struct pollfd pfd;
-	//POLL_HUP is output only, ignored if you set it here.
+	//for POLL_HUP
+	//man literally says: This flag is
+	//output only, and ignored if present in the input events
+	// but that's not true!
 	//We also need POLL_OUT. That's just a rule in the subject, checking for read and write needs to be done at the same time
-	pfd.events = POLL_IN;
+	pfd.events = POLL_IN | POLL_HUP;
 	pfd.revents = 0;
 	pfd.fd = socket;
 	read_ret = 1;
