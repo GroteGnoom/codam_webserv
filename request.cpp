@@ -62,7 +62,9 @@ t_request	get_request_info(int socket) {
 
 	bool read_once = 0;
 	struct pollfd pfd;
-	pfd.events = POLL_IN | POLL_HUP;
+	//POLL_HUP is output only, ignored if you set it here.
+	//We also need POLL_OUT. That's just a rule in the subject, checking for read and write needs to be done at the same time
+	pfd.events = POLL_IN;
 	pfd.revents = 0;
 	pfd.fd = socket;
 	read_ret = 1;
@@ -77,6 +79,8 @@ t_request	get_request_info(int socket) {
 		read_ret = read(socket, buffer, BUFSIZE);
 		std::cout << "read: " << read_ret << "\n";
 		if (read_ret < 0) {
+			//maybe this should just remove the connection?
+			//we are not allowed to check errno
 			std::cout << "Failed to read, errno: " << errno << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -85,6 +89,7 @@ t_request	get_request_info(int socket) {
 		std::cout << "whole request size: " << request.whole_request.size() << "\n";
 		//I think this never happens
 		if (!read_ret)
+			//maybe this should remove the connection?
 			break;
 		
 	}

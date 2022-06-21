@@ -8,6 +8,8 @@ siege stress test
 POST
 DELETE
 use hostname - maybe check this by putting two servers on the same port with different hostnames
+the default error page needs to be able to be set in the configuration
+-- for exapmle with:   error_page 404 403 500 503 /error-page.html;
 
 send a big file:
 	check boundary correctly?
@@ -18,5 +20,6 @@ send a big file:
 	
 the subject mentions default servers: http://nginx.org/en/docs/http/request_processing.html
 
-limit client body size
+limit client body size in configuration
+-- then do post requests smaller or larger than body limit. 
 

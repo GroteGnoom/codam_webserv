@@ -1,0 +1,5 @@
+curl --resolve is like pinning a host to an ip temporarily
+https://support-acquia.force.com/s/article/360005257154-Use-cURL-s-resolve-option-to-pin-a-request-to-an-IP-address
+so if you do this:
+curl http://www.example.com --resolve www.example.com:80:127.0.0.1
+you're sending a request to www.example.com, but you're also saying that www.example.com is located at 127.0.0.1:80, so it will send the request there
