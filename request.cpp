@@ -16,7 +16,7 @@ std::map<std::string, std::string>	get_current_pair(std::map<std::string, std::s
 	j++;
 	*i = j;
 	request_info.insert(std::pair<std::string, std::string>(key, value));
-	std::cout << key << ": " << value << "\n";
+	// std::cout << key << ": " << value << "\n";
 	key.clear();
 	value.clear();
 	return(request_info);
@@ -31,14 +31,14 @@ std::map<std::string, std::string>	get_first_line(std::map<std::string, std::str
 	}
 	j++;
 	request_info.insert(std::pair<std::string, std::string>("Method", value));
-	std::cout << "Method: " << value << std::endl;
+	// std::cout << "Method: " << value << std::endl;
 	value.clear();
 	for (; buffer[j] != ' ' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
 	}
 	j++;
 	request_info.insert(std::pair<std::string, std::string>("Request-URI", value));
-	std::cout << "Request-URI: " << value << std::endl;
+	// std::cout << "Request-URI: " << value << std::endl;
 	value.clear();
 	for (; buffer[j] != '\r' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
@@ -80,7 +80,7 @@ t_request	get_request_info(int socket) {
 			continue;
 		}
 		read_ret = read(socket, buffer, BUFSIZE);
-		std::cout << "read: " << read_ret << "\n";
+		// std::cout << "read: " << read_ret << "\n";
 		if (read_ret < 0) {
 			//maybe this should just remove the connection?
 			//we are not allowed to check errno
@@ -89,7 +89,7 @@ t_request	get_request_info(int socket) {
 		}
 		read_once = 1;
 		request.whole_request += std::string(buffer, buffer + read_ret);
-		std::cout << "whole request size: " << request.whole_request.size() << "\n";
+		// std::cout << "whole request size: " << request.whole_request.size() << "\n";
 		//I think this never happens
 		if (!read_ret)
 			//maybe this should remove the connection?
@@ -104,9 +104,9 @@ t_request	get_request_info(int socket) {
 	i++;
 	//std::cout << "whole request: " << request.whole_request << "****end of whole request\n";
 	request.headers = request_info;
-	std::cout << "i: " << i;
-	std::cout << "whole size: " << request.whole_request.size() << "\n";
-	std::cout << "difference: " << request.whole_request.size() - i << "\n";
+	// std::cout << "i: " << i;
+	// std::cout << "whole size: " << request.whole_request.size() << "\n";
+	// std::cout << "difference: " << request.whole_request.size() - i << "\n";
 	if (i < request.whole_request.size() )
 		request.body = request.whole_request.substr(i, request.whole_request.size() - i);
 	//request.body = get_body(request.whole_request.c_str(), i, read_ret);

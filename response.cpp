@@ -16,7 +16,8 @@ std::string response_to_string(t_response resp) {
 	std::stringstream code;
 	code << resp.code;
 	std::stringstream length;
-	length << resp.body.size();
+	if (resp.body.c_str())
+		length << resp.body.size();
 	std::string r;
 	r += "HTTP/1.1 " + code.str() + " OK\n";
 	r += "Server: webserv/1.0\n";
@@ -29,7 +30,8 @@ std::string response_to_string(t_response resp) {
 	//r += "Accept-Ranges: bytes\n";
 	r += "\n";
 	//std::cout << "body:" << resp.body << "\n";
-	r += resp.body;
+	if (resp.body.c_str())
+		r += resp.body;
 	return r;
 }
 

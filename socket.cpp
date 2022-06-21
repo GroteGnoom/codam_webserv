@@ -135,7 +135,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		} else {
 			webpage = settings.servers[0].root + request_info["Request-URI"];
 		}
-		std::cout << "page: " << webpage << "\n";
+		// std::cout << "page: " << webpage << "\n";
 		std::string resp;
 
 		if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].find(".py") != std::string::npos) {
@@ -156,6 +156,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		} catch (...) {
 			resp = not_found();
 		}
+		// std::cout << resp << std::endl;
 		write(new_socket, resp.c_str(), resp.size());
 		connections.insert(new_socket);
 		// close(new_socket);

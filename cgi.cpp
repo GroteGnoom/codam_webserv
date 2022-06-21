@@ -47,17 +47,17 @@ std::string get_cgi_post(t_request request) {
 	close(inpipe[1]);
 
 	//std::cout << "sending whole request: " << request.whole_request << "\n";
-	std::cout << "sending body: " << request.body << "\n";
+	// std::cout << "sending body: " << request.body << "\n";
 	write(outpipe[1], request.body.c_str(), request.body.size());
 	//write(outpipe[1], request.whole_request.c_str(), request.whole_request.size());
 
 	char buffer[1024];
 	int nread = 1;
 	while (nread) {
-		std::cout << "in read loop\n";
+		// std::cout << "in read loop\n";
 		nread = read(inpipe[0], buffer, 1023);
 		buffer[nread] = 0;
-		std::cout << "buffer: " << buffer << "\n";
+		// std::cout << "buffer: " << buffer << "\n";
 		//std::cout << "nread: " << nread << "\n";
 	}
 	close(outpipe[1]);
