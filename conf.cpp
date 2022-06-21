@@ -13,6 +13,8 @@ enum conf_read_state{
     CRS_SERVER_ROOT,
 	CRS_SERVER_CGI,
 	CRS_SERVER_INDEX,
+	CRS_LOCATION_STRING,
+	CRS_LOCATION,
 	CRS_SERVER_NAME,
 	CRS_ACCESS_LOG,
 	CRS_EXPECT_SC,
@@ -90,6 +92,8 @@ void process_token(conf_read_info *cri, std::string token) {
 			cri->crs = CRS_SERVER_LISTEN;
 		} else if (token == "root") {
 			cri->crs = CRS_SERVER_ROOT;
+		} else if (token == "location") {
+			cri->crs = CRS_LOCATION_STRING;
 		} else if (token == "server_name") {
 			cri->crs = CRS_SERVER_NAME;
 		} else if (token == "cgi") {
