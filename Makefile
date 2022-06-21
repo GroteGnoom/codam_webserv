@@ -28,6 +28,9 @@ siege: all
 	siege 127.0.0.1:8080 -t1s
 	pkill webserv
 
+tester: all
+	./webserv& ./tester http://127.0.0.1:8080& echo "\n\n\n\n\n"
+
 clean:
 	rm -f $(OBJ)
 
