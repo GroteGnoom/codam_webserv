@@ -10,6 +10,6 @@ std::string get_delete(std::string webpage) {
 		deleted_page = webpage.substr(0, webpage.find_last_of('/')) + "/not_deleted.html";
 	else
 		deleted_page = webpage.substr(0, webpage.find_last_of('/')) + "/deleted.html";
-	resp = get_reponse_from_page(deleted_page);
+	resp = get_response_from_page(deleted_page);
 	return (resp);
 }

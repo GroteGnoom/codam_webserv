@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include "list_files.hpp"
+#include "response.hpp"
 //returns a file listing of a directory in HTML, where the file names should be links.
 //example: https://stackoverflow.com/a/3793748
 std::string list_files(std::string path) {
@@ -12,10 +13,11 @@ std::string list_files(std::string path) {
 	result += "<div>";
 	result += "<h1> Index of " + path + "</h1><br>\n";
 	for (size_t i = 0; i < filenames.size(); i++) {
-		result += "<a href=" + path + filenames[i] + ">" + filenames[i] + "</a><br>\n";
+		result += "<a href=" + path + "/" + filenames[i] + ">" + filenames[i] + "</a><br>\n";
 	}
 	result += "</div>";
-	return result;
+	std::cout << "returned files\n";
+	return get_response(result);
 }
 
 std::vector<std::string> all_files_in_dir(std::string path) {
@@ -29,6 +31,7 @@ std::vector<std::string> all_files_in_dir(std::string path) {
 		}
 		closedir (dir);
 	} else {
+		std::cout << "could not find dir:" << path << "\n";
 		throw std::exception();
 	}
 	return result;

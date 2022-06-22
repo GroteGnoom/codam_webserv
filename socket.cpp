@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <set>
 #include "post.hpp"
+#include "list_files.hpp"
 
 /*
 * create a new socket
@@ -145,7 +146,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		}
 		else try {
 			if (request.headers["Method"] == "GET") {
-				resp = get_reponse_from_page(webpage);
+				resp = get_response_from_page(webpage);
 			}
 			else if (request.headers["Method"] == "DELETE") {
 				resp = get_delete(webpage);
@@ -154,7 +155,10 @@ int	listen_to_new_socket(int port, t_settings settings) {
 				resp = get_post(request);
 			}
 		} catch (...) {
-			resp = not_found();
+			if (!settings.servers[0].index.size() && request_info["Request-URI"].find('.') == std::string::npos && settings.servers[0].locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
+				resp = list_files(settings.servers[0].root + request_info["Request-URI"]);
+			}
+		   	else resp = not_found();
 		}
 		// std::cout << resp << std::endl;
 		write(new_socket, resp.c_str(), resp.size());
