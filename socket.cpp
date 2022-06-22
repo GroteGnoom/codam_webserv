@@ -83,6 +83,14 @@ int	accept_socket(int socket, sockaddr_in address) {
 	return (new_socket);
 }
 
+int	method_allowed(std::string method, t_settings settings) {
+	for (unsigned long i = 0; i < settings.unaccepted_methods.size(); i++) {
+		if (method == settings.unaccepted_methods[i])
+			return (0);
+	}
+	return (1);
+}
+
 int	listen_to_new_socket(int port, t_settings settings) {
 	int									server_socket = create_socket();
 	struct sockaddr_in					address;
@@ -148,14 +156,19 @@ int	listen_to_new_socket(int port, t_settings settings) {
 			}
 		}
 		else try {
-			if (request.headers["Method"] == "GET") {
+			if (request.headers["Method"] == "GET" && method_allowed("GET", settings)) {
 				resp = get_response_from_page(webpage);
 			}
-			else if (request.headers["Method"] == "DELETE") {
+			else if (request.headers["Method"] == "DELETE" && method_allowed("DELETE", settings)) {
 				resp = get_delete(webpage);
 			}
-			else if (request.headers["Method"] == "POST") {
+			else if (request.headers["Method"] == "POST" && method_allowed("POST", settings)) {
 				resp = get_post(request);
+			} else if (!method_allowed(request.headers["Method"], settings)){
+				t_response response;
+				response.body = "";
+				response.code = 405;
+				resp = response_to_string(response);
 			} else {
 				t_response response;
 				response.body = "";
