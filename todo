@@ -25,7 +25,5 @@ limit client body size in configuration
 
 test configuration with muliple routes
 
-define list of accepted methods for route
-
 turn directory listing on and off
 -- if client does a request on a location, and there is no index.html (or other root file) then a script should be called to show all the files. Can also just be a function that outputs html.
