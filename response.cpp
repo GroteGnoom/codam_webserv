@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <map>
 
 std::string not_found() {
 	std::string r;
@@ -12,14 +13,23 @@ std::string not_found() {
 	return r;
 }
 
+std::string get_code_string(int code) {
+	std::map<int, std::string> cs;
+	cs[200] = "OK";
+	cs[301] = "Moved Permanently";
+	cs[404] = "Not Found";
+	cs[405] = "Method Not Allowed";
+	std::stringstream codestr;
+	codestr << code;
+	return codestr.str() + " " + cs[code] + "\n";
+}
+
 std::string response_to_string(t_response resp) {
-	std::stringstream code;
-	code << resp.code;
 	std::stringstream length;
 	if (resp.body.c_str())
 		length << resp.body.size();
 	std::string r;
-	r += "HTTP/1.1 " + code.str() + " OK\n";
+	r += "HTTP/1.1 " + get_code_string(resp.code) ;
 	r += "Server: webserv/1.0\n";
 	//r += "Date: Fri, 10 Jun 2022 08:14:54 GMT\n";
 	r += "Content-Type: text/html\n";
