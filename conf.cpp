@@ -246,7 +246,7 @@ t_settings read_conf(char *conf_file) {
     std::vector<std::string> tokens = tokenize(sstr.str());
     input_stream.close();
 
-	std::cout << tokens << "\n";
+	//std::cout << tokens << "\n";
 
     for (std::vector<std::string>::iterator it = tokens.begin(); it < tokens.end(); it++) {
         process_token(&cri, *it);
