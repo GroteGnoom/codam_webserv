@@ -156,6 +156,11 @@ int	listen_to_new_socket(int port, t_settings settings) {
 			}
 			else if (request.headers["Method"] == "POST") {
 				resp = get_post(request);
+			} else {
+				t_response response;
+				response.body = "";
+				response.code = 501;
+				resp = response_to_string(response);
 			}
 		} catch (...) {
 			if (!settings.servers[0].index.size() && request_info["Request-URI"].find('.') == std::string::npos && settings.servers[0].locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
