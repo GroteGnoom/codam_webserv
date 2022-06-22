@@ -20,6 +20,7 @@ enum conf_read_state{
 	CRS_EXPECT_SC,
 	CRS_EXPECT_BLOCK,
 	CRS_AUTOINDEX,
+	CRS_ACCEPT_METHOD,
 	CRS_SERVER_REDIRECT_SRC,
 	CRS_SERVER_REDIRECT_DST,
 };
@@ -160,6 +161,8 @@ void process_token(conf_read_info *cri, std::string token) {
 	} else if (cri->crs == CRS_LOCATION) {
 		if (token == "autoindex") {
 			cri->crs = CRS_AUTOINDEX;
+		} else if (token == "off"){
+			cri->crs = CRS_ACCEPT_METHOD;
 		} else if (token == "}") {
 			cri->crs = CRS_SERVER;
 		} else {
@@ -176,6 +179,10 @@ void process_token(conf_read_info *cri, std::string token) {
 			cri->crs = CRS_EXPECT_SC;
 			cri->next = CRS_LOCATION;
 		}
+	} else if (cri->crs == CRS_ACCEPT_METHOD) {
+		cri->settings.unaccepted_methods.push_back(token);
+		cri->crs = CRS_EXPECT_SC;
+		cri->next = CRS_LOCATION;
 	}
 }
 

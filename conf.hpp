@@ -19,12 +19,13 @@ struct t_server {
 };
 
 struct t_settings {
-	std::string error_log;
-	std::string error_level;
-	std::string access_log;
-	std::vector<t_server> servers;
-	std::string	redir_src;
-	std::string	redir_dst;
+	std::string 				error_log;
+	std::string 				error_level;
+	std::string 				access_log;
+	std::vector<t_server> 		servers;
+	std::string					redir_src;
+	std::string					redir_dst;
+	std::vector<std::string>	unaccepted_methods;
 };
 
 t_settings read_conf(char *conf_file);
