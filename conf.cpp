@@ -158,10 +158,14 @@ void process_token(conf_read_info *cri, std::string token) {
 		cri->crs = CRS_EXPECT_BLOCK;
 		cri->next = CRS_LOCATION;
 	} else if (cri->crs == CRS_LOCATION) {
-		if (token == "autoindex")
+		if (token == "autoindex") {
 			cri->crs = CRS_AUTOINDEX;
 		} else if (token == "}") {
 			cri->crs = CRS_SERVER;
+		} else {
+			std::cerr << "unexpected token in location: " << token << "\n";
+			throw std::exception();
+		}
 	} else if (cri->crs == CRS_AUTOINDEX) {
 		if (token == "on") {
 			cri->settings.servers[0].locations[0].autoindex = true;
@@ -242,10 +246,11 @@ t_settings read_conf(char *conf_file) {
     std::vector<std::string> tokens = tokenize(sstr.str());
     input_stream.close();
 
-	//std::cout << tokens << "\n";
+	std::cout << tokens << "\n";
 
     for (std::vector<std::string>::iterator it = tokens.begin(); it < tokens.end(); it++) {
         process_token(&cri, *it);
     }
+	std::cout << "redir: " << cri.settings.redir_src << "\n";
     return cri.settings;
 };
