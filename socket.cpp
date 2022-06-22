@@ -126,6 +126,9 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		request = get_request_info(new_socket);
 		request_info = request.headers;
 
+		if (!request_info["Request-URI"].compare(settings.redir_src))
+			request_info["Request-URI"].replace(0, settings.redir_dst.size(), settings.redir_dst);
+
 		std::string webpage;
 		if (request_info["Request-URI"].find('.') == std::string::npos) {
 			if (settings.servers[0].index.size()) {

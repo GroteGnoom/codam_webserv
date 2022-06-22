@@ -20,6 +20,8 @@ enum conf_read_state{
 	CRS_EXPECT_SC,
 	CRS_EXPECT_BLOCK,
 	CRS_AUTOINDEX,
+	CRS_SERVER_REDIRECT_SRC,
+	CRS_SERVER_REDIRECT_DST,
 };
 
 struct conf_read_info {
@@ -88,11 +90,14 @@ void process_token(conf_read_info *cri, std::string token) {
 		} else if (token == "}") {
 			cri->crs = CRS_GLOBAL;
 		} else syntax_error(cri);
+
 	} else if (cri->crs == CRS_SERVER) {
 		if (token == "listen") {
 			cri->crs = CRS_SERVER_LISTEN;
 		} else if (token == "root") {
 			cri->crs = CRS_SERVER_ROOT;
+		} else if (token == "redirect") {
+			cri->crs = CRS_SERVER_REDIRECT_SRC;
 		} else if (token == "location") {
 			cri->crs = CRS_LOCATION_STRING;
 			cri->settings.servers[0].locations.resize(cri->settings.servers[0].locations.size() + 1);
@@ -105,6 +110,7 @@ void process_token(conf_read_info *cri, std::string token) {
 		} else if (token == "}") {
 			cri->crs = CRS_HTTP;
 		} else syntax_error(cri);
+
 	} else if (cri->crs == CRS_SERVER_LISTEN) {
 		cri->settings.servers[0].listen_port = atoi( token.c_str() );
 		cri->crs = CRS_EXPECT_SC;
@@ -125,6 +131,13 @@ void process_token(conf_read_info *cri, std::string token) {
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_INDEX) {
 		cri->settings.servers[0].index = token;
+		cri->crs = CRS_EXPECT_SC;
+		cri->next = CRS_SERVER;
+	} else if (cri->crs == CRS_SERVER_REDIRECT_SRC) {
+		cri->settings.redir_src = token;
+		cri->crs = CRS_SERVER_REDIRECT_DST;
+	} else if (cri->crs == CRS_SERVER_REDIRECT_DST) {
+		cri->settings.redir_dst = token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_ACCESS_LOG) {
