@@ -99,7 +99,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 	std::map<std::string, std::string>	request_info;
 	std::set<int>						connections;
 
-	struct pollfd pfd[backlog];
+	struct pollfd pfd[SOMAXCONN];
 	if (server_socket == EXIT_FAILURE)
 		exit(EXIT_FAILURE);
 	if (identify_socket(server_socket, port, address) == EXIT_FAILURE)
@@ -157,7 +157,11 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		}
 		else try {
 			if (request.headers["Method"] == "GET" && method_allowed("GET", settings)) {
-				resp = get_response_from_page(webpage);
+				try {
+					resp = get_response_from_page(webpage);
+				} catch (...) {
+					resp = not_found();
+				}
 			}
 			else if (request.headers["Method"] == "DELETE" && method_allowed("DELETE", settings)) {
 				resp = get_delete(webpage);
@@ -184,6 +188,6 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		// std::cout << resp << std::endl;
 		write(new_socket, resp.c_str(), resp.size());
 		connections.insert(new_socket);
-		// close(new_socket);
+		close(new_socket);
 	}
 }

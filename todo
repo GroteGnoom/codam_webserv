@@ -1,9 +1,7 @@
 
 test config parsing with more unit tests
 better error messages in config parsing
-parse requests
 dispatch request to threadpool
-cgi
 siege stress test
 use hostname - maybe check this by putting two servers on the same port with different hostnames -- no, using the same port multiple times should not work
 the default error page needs to be able to be set in the configuration
