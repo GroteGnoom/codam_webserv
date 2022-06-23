@@ -1,8 +1,9 @@
 #include "request.hpp"
 #include "response.hpp"
+#include "post.hpp"
 #include <fcntl.h>
 
-std::string get_post(t_request request) {
+std::string get_post(t_request request, t_settings settings) {
 	// (void) request;
 	//std::cout << "body in get_post: " << request.body << "\n";
 	t_response response;
@@ -10,6 +11,11 @@ std::string get_post(t_request request) {
 		std::cout << "no body!\n";
 		response.body = "";
 		response.code = 400;
+		return response_to_string(response);
+	} else if (request.body.size() > settings.size_string) {
+		std::cout << "Body too large!\n";
+		response.body = "";
+		response.code = 413;
 		return response_to_string(response);
 	}
 

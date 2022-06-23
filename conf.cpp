@@ -154,6 +154,12 @@ void process_token(conf_read_info *cri, std::string token) {
 			throw std::exception();
 		}
 		cri->settings.size_string = std::stoi(token.substr(0, (token.size() - 1)));
+		if (token.back() == 'K')
+			cri->settings.size_string *= 1000;
+		else if (token.back() == 'M')
+			cri->settings.size_string *= 1000000;
+		else if (token.back() == 'G')
+			cri->settings.size_string *= 1000000000;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_ACCESS_LOG) {

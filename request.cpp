@@ -107,7 +107,7 @@ t_request	get_request_info(int socket) {
 	// std::cout << "i: " << i;
 	// std::cout << "whole size: " << request.whole_request.size() << "\n";
 	// std::cout << "difference: " << request.whole_request.size() - i << "\n";
-	if (i < request.whole_request.size() )
+	if (i < request.whole_request.size())
 		request.body = request.whole_request.substr(i, request.whole_request.size() - i);
 	//request.body = get_body(request.whole_request.c_str(), i, read_ret);
 	//std::cout << "request body: " << request.body << "****end of request body\n";

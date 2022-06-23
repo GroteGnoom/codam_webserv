@@ -163,7 +163,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 				resp = get_delete(webpage);
 			}
 			else if (request.headers["Method"] == "POST" && method_allowed("POST", settings)) {
-				resp = get_post(request);
+				resp = get_post(request, settings);
 			} else if (!method_allowed(request.headers["Method"], settings)){
 				t_response response;
 				response.body = "";
