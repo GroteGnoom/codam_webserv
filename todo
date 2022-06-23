@@ -16,10 +16,12 @@ send a big file:
 	
 the subject mentions default servers: http://nginx.org/en/docs/http/request_processing.html
 
-limit client body size in configuration
--- then do post requests smaller or larger than body limit. 
-
 test configuration with muliple routes
 
 turn directory listing on and off
 -- if client does a request on a location, and there is no index.html (or other root file) then a script should be called to show all the files. Can also just be a function that outputs html.
+
+when you POST a file: use filename given by user
+-- also it shouldn't segfault when you upload it the second time
+
+poll every read/write
