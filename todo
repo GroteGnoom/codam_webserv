@@ -1,9 +1,7 @@
 
 test config parsing with more unit tests
 better error messages in config parsing
-parse requests
 dispatch request to threadpool
-cgi
 siege stress test
 POST
 DELETE
