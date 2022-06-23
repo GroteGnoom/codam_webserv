@@ -26,6 +26,7 @@ struct t_settings {
 	std::string					redir_src;
 	std::string					redir_dst;
 	std::vector<std::string>	unaccepted_methods;
+	unsigned long				size_string;
 };
 
 t_settings read_conf(char *conf_file);

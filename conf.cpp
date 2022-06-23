@@ -13,6 +13,7 @@ enum conf_read_state{
     CRS_SERVER_ROOT,
 	CRS_SERVER_CGI,
 	CRS_SERVER_INDEX,
+	CRS_SERVER_SIZE,
 	CRS_LOCATION_STRING,
 	CRS_LOCATION,
 	CRS_SERVER_NAME,
@@ -104,6 +105,8 @@ void process_token(conf_read_info *cri, std::string token) {
 			cri->settings.servers[0].locations.resize(cri->settings.servers[0].locations.size() + 1);
 		} else if (token == "server_name") {
 			cri->crs = CRS_SERVER_NAME;
+		} else if (token == "client_max_body_size") {
+			cri->crs = CRS_SERVER_SIZE;
 		} else if (token == "cgi") {
 			cri->crs = CRS_SERVER_CGI;
 		} else if (token == "index") {
@@ -139,6 +142,18 @@ void process_token(conf_read_info *cri, std::string token) {
 		cri->crs = CRS_SERVER_REDIRECT_DST;
 	} else if (cri->crs == CRS_SERVER_REDIRECT_DST) {
 		cri->settings.redir_dst = token;
+		cri->crs = CRS_EXPECT_SC;
+		cri->next = CRS_SERVER;
+	} else if (cri->crs == CRS_SERVER_SIZE) {
+		if (token.back() != 'B' && token.back() != 'K' && token.back() != 'M' && token.back() != 'G') {
+			std::cerr << "unexpected token in location: " << token << "\n";
+			throw std::exception();
+		}
+		if (token.substr(0, (token.size() - 1)).find_first_not_of("0123456789") != std::string::npos) {
+			std::cerr << "unexpected token in location: " << token << "\n";
+			throw std::exception();
+		}
+		cri->settings.size_string = std::stoi(token.substr(0, (token.size() - 1)));
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_ACCESS_LOG) {

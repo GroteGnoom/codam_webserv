@@ -5,8 +5,6 @@ parse requests
 dispatch request to threadpool
 cgi
 siege stress test
-POST
-DELETE
 use hostname - maybe check this by putting two servers on the same port with different hostnames -- no, using the same port multiple times should not work
 the default error page needs to be able to be set in the configuration
 -- for exapmle with:   error_page 404 403 500 503 /error-page.html;
