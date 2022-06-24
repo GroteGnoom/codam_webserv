@@ -105,17 +105,17 @@ int	listen_to_new_socket(t_settings settings) {
 	int nr_ports = ports.size();
 
 	struct pollfd pfd_init = {-1, POLLIN, 0};
-	std::vector<struct pollfd> pfd_sockets(nr_ports, pfd_init);
-	//struct pollfd pfd_conn[SOMAXCONN];
+	std::vector<struct pollfd> pfd_ports(nr_ports, pfd_init);
+	//struct pollfd pfd_conns[SOMAXCONN];
 
 	for (int i = 0; i < nr_ports; i++) {
-		pfd_sockets[i].fd = create_socket();
-		if (pfd_sockets[i].fd == EXIT_FAILURE)
+		pfd_ports[i].fd = create_socket();
+		if (pfd_ports[i].fd == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
-		if (identify_socket(pfd_sockets[i].fd, settings.servers[i].listen_port, address) == EXIT_FAILURE)
+		if (identify_socket(pfd_ports[i].fd, settings.servers[i].listen_port, address) == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
-		fcntl(pfd_sockets[i].fd, F_SETFL, O_NONBLOCK);
-		if (listening_socket(pfd_sockets[i].fd, backlog) == EXIT_FAILURE)
+		fcntl(pfd_ports[i].fd, F_SETFL, O_NONBLOCK);
+		if (listening_socket(pfd_ports[i].fd, backlog) == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
 	}
 	while (1) {
@@ -128,75 +128,80 @@ int	listen_to_new_socket(t_settings settings) {
 			i++;
 		}
 		*/
-
-		poll(&*pfd_sockets.begin(), nr_ports, -1);
-		if (!(pfd_sockets[0].revents & POLLIN)) {
-			continue;
+		poll(&*pfd_ports.begin(), nr_ports, -1);
+		connections.clear();
+		for (int i = 0; i < nr_ports; i++) {
+			if (!(pfd_ports[i].revents & POLLIN)) {
+				continue;
+			}
+			pfd_ports[0].revents = 0;
+			int	new_conn;
+			new_conn = accept_socket(pfd_ports[0].fd, address);
+			fcntl(new_conn, F_SETFL, O_NONBLOCK);
+			if (new_conn == EXIT_FAILURE)
+				exit(EXIT_FAILURE);
+			connections.insert(new_conn);
 		}
-		pfd_sockets[0].revents = 0;
 
-		int	new_socket;
-		new_socket = accept_socket(pfd_sockets[0].fd, address);
-		fcntl(new_socket, F_SETFL, O_NONBLOCK);
-		if (new_socket == EXIT_FAILURE)
-			exit(EXIT_FAILURE);
-		request = get_request_info(new_socket);
-		request_info = request.headers;
+		for (std::set<int>::iterator iter = connections.begin(); iter != connections.end(); iter++) {
+			int new_socket = *iter;
+			request = get_request_info(new_socket);
+			request_info = request.headers;
 
-		if (!request_info["Request-URI"].compare(settings.redir_src))
-			request_info["Request-URI"].replace(0, settings.redir_dst.size(), settings.redir_dst);
+			if (!request_info["Request-URI"].compare(settings.redir_src))
+				request_info["Request-URI"].replace(0, settings.redir_dst.size(), settings.redir_dst);
 
-		std::string webpage;
-		if (request_info["Request-URI"].find('.') == std::string::npos) {
-			if (settings.servers[0].index.size()) {
-				webpage = settings.servers[0].root + request_info["Request-URI"] + settings.servers[0].index;
+			std::string webpage;
+			if (request_info["Request-URI"].find('.') == std::string::npos) {
+				if (settings.servers[0].index.size()) {
+					webpage = settings.servers[0].root + request_info["Request-URI"] + settings.servers[0].index;
+				} else {
+					webpage = settings.servers[0].root + request_info["Request-URI"] + "/index.html";
+				}
 			} else {
-				webpage = settings.servers[0].root + request_info["Request-URI"] + "/index.html";
+				webpage = settings.servers[0].root + request_info["Request-URI"];
 			}
-		} else {
-			webpage = settings.servers[0].root + request_info["Request-URI"];
-		}
-		// std::cout << "page: " << webpage << "\n";
-		std::string resp;
+			// std::cout << "page: " << webpage << "\n";
+			std::string resp;
 
-		if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].find(".py") != std::string::npos) {
-			if (request.headers["Method"] == "GET") {
-				resp = get_cgi(request);
-			}
-		}
-		else try {
-			if (request.headers["Method"] == "GET" && method_allowed("GET", settings)) {
-				try {
-					resp = get_response_from_page(webpage);
-				} catch (...) {
-					resp = not_found();
+			if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].find(".py") != std::string::npos) {
+				if (request.headers["Method"] == "GET") {
+					resp = get_cgi(request);
 				}
 			}
-			else if (request.headers["Method"] == "DELETE" && method_allowed("DELETE", settings)) {
-				resp = get_delete(webpage);
+			else try {
+				if (request.headers["Method"] == "GET" && method_allowed("GET", settings)) {
+					try {
+						resp = get_response_from_page(webpage);
+					} catch (...) {
+						resp = not_found();
+					}
+				}
+				else if (request.headers["Method"] == "DELETE" && method_allowed("DELETE", settings)) {
+					resp = get_delete(webpage);
+				}
+				else if (request.headers["Method"] == "POST" && method_allowed("POST", settings)) {
+					resp = get_post(request, settings);
+				} else if (!method_allowed(request.headers["Method"], settings)){
+					t_response response;
+					response.body = "";
+					response.code = 405;
+					resp = response_to_string(response);
+				} else {
+					t_response response;
+					response.body = "";
+					response.code = 501;
+					resp = response_to_string(response);
+				}
+			} catch (...) {
+				if (!settings.servers[0].index.size() && request_info["Request-URI"].find('.') == std::string::npos && settings.servers[0].locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
+					resp = list_files(settings.servers[0].root + request_info["Request-URI"]);
+				}
+				else resp = not_found();
 			}
-			else if (request.headers["Method"] == "POST" && method_allowed("POST", settings)) {
-				resp = get_post(request, settings);
-			} else if (!method_allowed(request.headers["Method"], settings)){
-				t_response response;
-				response.body = "";
-				response.code = 405;
-				resp = response_to_string(response);
-			} else {
-				t_response response;
-				response.body = "";
-				response.code = 501;
-				resp = response_to_string(response);
-			}
-		} catch (...) {
-			if (!settings.servers[0].index.size() && request_info["Request-URI"].find('.') == std::string::npos && settings.servers[0].locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
-				resp = list_files(settings.servers[0].root + request_info["Request-URI"]);
-			}
-		   	else resp = not_found();
+			// std::cout << resp << std::endl;
+			write(new_socket, resp.c_str(), resp.size());
+			close(new_socket);
 		}
-		// std::cout << resp << std::endl;
-		write(new_socket, resp.c_str(), resp.size());
-		connections.insert(new_socket);
-		close(new_socket);
 	}
 }
