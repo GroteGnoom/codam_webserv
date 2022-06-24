@@ -51,7 +51,7 @@ void syntax_error(conf_read_info *cri) {
 	throw std::exception();
 }
 
-void process_token(conf_read_info *cri, std::string token) {
+void process_token(conf_read_info *cri, std::string token, int *server_index) {
 	char		buf[256];
 	std::string	cwd;
 
@@ -88,6 +88,7 @@ void process_token(conf_read_info *cri, std::string token) {
 		} else if (token == "server") {
 			cri->crs = CRS_EXPECT_BLOCK;
 			cri->next = CRS_SERVER;
+			(*server_index)++;
 			cri->settings.servers.resize(cri->settings.servers.size() + 1);
 		} else if (token == "}") {
 			cri->crs = CRS_GLOBAL;
@@ -102,7 +103,7 @@ void process_token(conf_read_info *cri, std::string token) {
 			cri->crs = CRS_SERVER_REDIRECT_SRC;
 		} else if (token == "location") {
 			cri->crs = CRS_LOCATION_STRING;
-			cri->settings.servers[0].locations.resize(cri->settings.servers[0].locations.size() + 1);
+			cri->settings.servers[*server_index].locations.resize(cri->settings.servers[*server_index].locations.size() + 1);
 		} else if (token == "server_name") {
 			cri->crs = CRS_SERVER_NAME;
 		} else if (token == "client_max_body_size") {
@@ -116,25 +117,25 @@ void process_token(conf_read_info *cri, std::string token) {
 		} else syntax_error(cri);
 
 	} else if (cri->crs == CRS_SERVER_LISTEN) {
-		cri->settings.servers[0].listen_port = atoi( token.c_str() );
+		cri->settings.servers[*server_index].listen_port = atoi( token.c_str() );
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_ROOT) {
 		if (token[0] != '/')
-			cri->settings.servers[0].root = cwd;
-		cri->settings.servers[0].root += token;
+			cri->settings.servers[*server_index].root = cwd;
+		cri->settings.servers[*server_index].root += token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_CGI) {
-		cri->settings.servers[0].cgi_path = token;
+		cri->settings.servers[*server_index].cgi_path = token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_NAME) {
-		cri->settings.servers[0].name = token;
+		cri->settings.servers[*server_index].name = token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_INDEX) {
-		cri->settings.servers[0].index = token;
+		cri->settings.servers[*server_index].index = token;
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_SERVER;
 	} else if (cri->crs == CRS_SERVER_REDIRECT_SRC) {
@@ -176,7 +177,7 @@ void process_token(conf_read_info *cri, std::string token) {
 		cri->crs = CRS_EXPECT_SC;
 		cri->next = CRS_GLOBAL;
 	} else if (cri->crs == CRS_LOCATION_STRING) {
-		cri->settings.servers[0].locations[0].location = token;
+		cri->settings.servers[*server_index].locations[0].location = token;
 		cri->crs = CRS_EXPECT_BLOCK;
 		cri->next = CRS_LOCATION;
 	} else if (cri->crs == CRS_LOCATION) {
@@ -192,11 +193,11 @@ void process_token(conf_read_info *cri, std::string token) {
 		}
 	} else if (cri->crs == CRS_AUTOINDEX) {
 		if (token == "on") {
-			cri->settings.servers[0].locations[0].autoindex = true;
+			cri->settings.servers[*server_index].locations[0].autoindex = true;
 			cri->crs = CRS_EXPECT_SC;
 			cri->next = CRS_LOCATION;
 		} else if (token == "off") {
-			cri->settings.servers[0].locations[0].autoindex = false;
+			cri->settings.servers[*server_index].locations[0].autoindex = false;
 			cri->crs = CRS_EXPECT_SC;
 			cri->next = CRS_LOCATION;
 		}
@@ -276,9 +277,14 @@ t_settings read_conf(char *conf_file) {
 
 	//std::cout << tokens << "\n";
 
+	int	server_index = -1;
+
     for (std::vector<std::string>::iterator it = tokens.begin(); it < tokens.end(); it++) {
-        process_token(&cri, *it);
+        process_token(&cri, *it, &server_index);
     }
-	std::cout << "redir: " << cri.settings.redir_src << "\n";
+	std::cout << cri.settings.servers[0].name << std::endl;
+	std::cout << cri.settings.servers[1].name << std::endl;
+	std::cout << cri.settings.servers.size() << std::endl;
+	// std::cout << "redir: " << cri.settings.redir_src << "\n";
     return cri.settings;
 };
