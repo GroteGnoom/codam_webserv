@@ -52,11 +52,25 @@ std::map<std::string, std::string>	get_first_line(std::map<std::string, std::str
 
 #define BUFSIZE 1024
 
+t_request split_up_request(t_request request, long read_ret) {
+	std::map<std::string, std::string>	request_info;
+	unsigned int 						i = 0;
+
+	request_info = get_first_line(request_info, request.whole_request.c_str(), &i, read_ret);
+	while (request.whole_request[i] != '\r' && i < request.whole_request.size()) {
+		request_info = get_current_pair(request_info, request.whole_request.c_str(), &i, read_ret);
+		i++;
+	}
+	i++;
+	request.headers = request_info;
+	if (i < request.whole_request.size())
+		request.body = request.whole_request.substr(i, request.whole_request.size() - i);
+	return (request);
+}
+
 t_request	get_request_info(int socket) {
 	char								buffer[BUFSIZE] = {0};
 	long								read_ret;
-	unsigned int 						i = 0;
-	std::map<std::string, std::string>	request_info;
 	std::string							value;
 	t_request							request;
 
@@ -94,23 +108,7 @@ t_request	get_request_info(int socket) {
 		if (!read_ret)
 			//maybe this should remove the connection?
 			break;
-		
+
 	}
-	request_info = get_first_line(request_info, request.whole_request.c_str(), &i, read_ret);
-	while (request.whole_request[i] != '\r' && i < request.whole_request.size()) {
-		request_info = get_current_pair(request_info, request.whole_request.c_str(), &i, read_ret);
-		i++;
-	}
-	i++;
-	//std::cout << "whole request: " << request.whole_request << "****end of whole request\n";
-	request.headers = request_info;
-	// std::cout << "i: " << i;
-	// std::cout << "whole size: " << request.whole_request.size() << "\n";
-	// std::cout << "difference: " << request.whole_request.size() - i << "\n";
-	if (i < request.whole_request.size())
-		request.body = request.whole_request.substr(i, request.whole_request.size() - i);
-	// std::cout << "Body size in request: " << request.body.size() << std::endl;
-	//request.body = get_body(request.whole_request.c_str(), i, read_ret);
-	//std::cout << "request body: " << request.body << "****end of request body\n";
-	return (request);
+	return split_up_request(request, read_ret);
 }

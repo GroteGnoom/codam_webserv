@@ -179,15 +179,6 @@ int	listen_to_new_socket(t_settings settings) {
 			exit(EXIT_FAILURE);
 	}
 	while (1) {
-		/*
-		   unsigned int i = 0;
-		   for (std::set<int>::iterator iter = connections.begin(); iter != connections.end(); iter++) {
-		   pfd_conn[i].fd = *iter;
-		   pfd_conn[i].events = POLLIN;
-		   pfd_conn[i].revents = 0;
-		   i++;
-		   }
-		   */
 		poll(&*pfd_ports.begin(), nr_ports, -1);
 		connections.clear();
 		for (int i = 0; i < nr_ports; i++) {
