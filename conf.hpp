@@ -6,15 +6,15 @@
 
 struct t_location {
 	std::string location;
-	bool autoindex;
+	bool 		autoindex;
 };
 
 struct t_server {
-	int listen_port;
-	std::string root;
-	std::string cgi_path;
-	std::string index;
-	std::string name;
+	int 					listen_port;
+	std::string 			root;
+	std::string 			cgi_path;
+	std::string 			index;
+	std::string 			name;
 	std::vector<t_location> locations;
 };
 

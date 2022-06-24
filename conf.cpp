@@ -29,14 +29,14 @@ enum conf_read_state{
 struct conf_read_info {
 	conf_read_state crs;
 	conf_read_state next;
-	t_settings settings;
+	t_settings 		settings;
 };
 
 std::vector<std::string> split_on_whitespace(std::string str) {
-    std::string buf;
-    std::stringstream ss(str);
+    std::string					buf;
+    std::stringstream			ss(str);
+    std::vector<std::string>	tokens;
 
-    std::vector<std::string> tokens;
     while (ss >> buf) {
         if (!buf.empty())
             tokens.push_back(buf);   
@@ -209,14 +209,18 @@ void process_token(conf_read_info *cri, std::string token, int *server_index) {
 }
 
 std::ostream &operator <<(std::ostream &out, const std::vector<std::string> &v) {
-	out << "{";
 	std::vector<std::string>::size_type i = 0;
+
+	out << "{";
+
 	for (; i < v.size() -1; i++) {
 		out << '"' << v[i] << '"';
 		out << ", ";
 	}
+
 	if (v.size())
 		out << i;
+	
 	out << "}";
 	return out;
 }
@@ -225,8 +229,8 @@ std::ostream &operator <<(std::ostream &out, const std::vector<std::string> &v) 
  * so "bla{}bloe;ble\nblie#comment" should become
  * {"bla", "{", "}", "bloe", ";", "ble", "blie"} */
 std::vector<std::string> tokenize(std::string conf) {
-	std::string::size_type end;
-	std::vector<std::string> tokens;
+	std::string::size_type 		end;
+	std::vector<std::string>	tokens;
 
 	for(std::string::size_type i = 0; i < conf.length();)
 	{
@@ -260,31 +264,25 @@ std::vector<std::string> tokenize(std::string conf) {
 }
 
 t_settings read_conf(char *conf_file) {
-	//std::cout << "read_conf\n";
-	conf_read_info cri = {};
+	conf_read_info 		cri = {};
+    std::ifstream 		input_stream(conf_file);
+    std::ostringstream	sstr;
+	int					server_index = -1;
+
     cri.crs = CRS_GLOBAL;
-    std::ifstream input_stream(conf_file);
 
     // check stream status
     if (!input_stream) {
         std::cerr << "Can't open config file " << conf_file << "\n";
         exit(1);
     }
-    std::ostringstream sstr;
     sstr << input_stream.rdbuf();
     std::vector<std::string> tokens = tokenize(sstr.str());
     input_stream.close();
 
-	//std::cout << tokens << "\n";
-
-	int	server_index = -1;
 
     for (std::vector<std::string>::iterator it = tokens.begin(); it < tokens.end(); it++) {
         process_token(&cri, *it, &server_index);
     }
-	std::cout << cri.settings.servers[0].name << std::endl;
-	std::cout << cri.settings.servers[1].name << std::endl;
-	std::cout << cri.settings.servers.size() << std::endl;
-	// std::cout << "redir: " << cri.settings.redir_src << "\n";
     return cri.settings;
 };

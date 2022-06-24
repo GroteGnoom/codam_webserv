@@ -11,4 +11,3 @@ int main(int argc, char **argv) {
 	}
     listen_to_new_socket(settings);
 }
-

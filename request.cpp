@@ -13,10 +13,12 @@ std::map<std::string, std::string>	get_current_pair(std::map<std::string, std::s
 	for (; buffer[j] != '\r' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
 	}
+
 	j++;
 	*i = j;
+
 	request_info.insert(std::pair<std::string, std::string>(key, value));
-	// std::cout << key << ": " << value << "\n";
+
 	key.clear();
 	value.clear();
 	return(request_info);
@@ -31,21 +33,21 @@ std::map<std::string, std::string>	get_first_line(std::map<std::string, std::str
 	}
 	j++;
 	request_info.insert(std::pair<std::string, std::string>("Method", value));
-	// std::cout << "Method: " << value << std::endl;
 	value.clear();
 	for (; buffer[j] != ' ' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
 	}
 	j++;
 	request_info.insert(std::pair<std::string, std::string>("Request-URI", value));
-	// std::cout << "Request-URI: " << value << std::endl;
 	value.clear();
 	for (; buffer[j] != '\r' && j < read_ret; j++) {
 		value.push_back(buffer[j]);
 	}
 	j += 2;
+
 	request_info.insert(std::pair<std::string, std::string>("Version", value));
 	value.clear();
+
 	*i = j;
 	return (request_info);
 }
@@ -62,7 +64,9 @@ t_request split_up_request(t_request request, long read_ret) {
 		i++;
 	}
 	i++;
+
 	request.headers = request_info;
+
 	if (i < request.whole_request.size())
 		request.body = request.whole_request.substr(i, request.whole_request.size() - i);
 	return (request);
@@ -73,18 +77,20 @@ t_request	get_request_info(int socket) {
 	long								read_ret;
 	std::string							value;
 	t_request							request;
+	bool 								read_once = 0;
+	struct pollfd 						pfd;
 
-	bool read_once = 0;
-	struct pollfd pfd;
 	//for POLL_HUP
 	//man literally says: This flag is
 	//output only, and ignored if present in the input events
 	// but that's not true!
 	//We also need POLL_OUT. That's just a rule in the subject, checking for read and write needs to be done at the same time
+
 	pfd.events = POLL_IN | POLL_HUP;
 	pfd.revents = 0;
 	pfd.fd = socket;
 	read_ret = 1;
+
 	while(read_ret) {
 		poll(&pfd, 1, -1);
 		if (!(pfd.revents & POLL_IN)) {
@@ -94,21 +100,21 @@ t_request	get_request_info(int socket) {
 			continue;
 		}
 		read_ret = read(socket, buffer, BUFSIZE);
-		// std::cout << "read: " << read_ret << "\n";
+
 		if (read_ret < 0) {
 			//maybe this should just remove the connection?
 			//we are not allowed to check errno
 			std::cout << "Failed to read, errno: " << errno << std::endl;
 			exit(EXIT_FAILURE);
 		}
+
 		read_once = 1;
 		request.whole_request += std::string(buffer, buffer + read_ret);
-		// std::cout << "whole request size: " << request.whole_request.size() << "\n";
+
 		//I think this never happens
 		if (!read_ret)
 			//maybe this should remove the connection?
 			break;
-
 	}
 	return split_up_request(request, read_ret);
 }
