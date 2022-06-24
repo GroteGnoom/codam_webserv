@@ -91,25 +91,29 @@ int	method_allowed(std::string method, t_settings settings) {
 	return (1);
 }
 
-int	listen_to_new_socket(int port, t_settings settings) {
-	int									server_socket = create_socket();
+int	listen_to_new_socket(t_settings settings) {
 	struct sockaddr_in					address;
 	int									backlog = SOMAXCONN;	//how many requests can be backlogged
 	t_request							request;
 	std::map<std::string, std::string>	request_info;
 	std::set<int>						connections;
-
+	int nr_servers = settings.servers.size();
+	std::vector<int> server_sockets(nr_servers, -1);
 	struct pollfd pfd[SOMAXCONN];
-	if (server_socket == EXIT_FAILURE)
-		exit(EXIT_FAILURE);
-	if (identify_socket(server_socket, port, address) == EXIT_FAILURE)
-		exit(EXIT_FAILURE);
-	fcntl(server_socket, F_SETFL, O_NONBLOCK);
-	if (listening_socket(server_socket, backlog) == EXIT_FAILURE)
-		exit(EXIT_FAILURE);
+
+	for (int i = 0; i < nr_servers; i++) {
+		server_sockets[i] = create_socket();
+		if (server_sockets[i] == EXIT_FAILURE)
+			exit(EXIT_FAILURE);
+		if (identify_socket(server_sockets[i], settings.servers[i].listen_port, address) == EXIT_FAILURE)
+			exit(EXIT_FAILURE);
+		fcntl(server_sockets[i], F_SETFL, O_NONBLOCK);
+		if (listening_socket(server_sockets[i], backlog) == EXIT_FAILURE)
+			exit(EXIT_FAILURE);
+	}
 	pfd[0].events = POLLIN;
 	pfd[0].revents = 0;
-	pfd[0].fd = server_socket;
+	pfd[0].fd = server_sockets[0];
 
 	while (1) {
 		unsigned int i = 1;
@@ -127,7 +131,7 @@ int	listen_to_new_socket(int port, t_settings settings) {
 		pfd[0].revents = 0;
 
 		int	new_socket;
-		new_socket = accept_socket(server_socket, address);
+		new_socket = accept_socket(server_sockets[0], address);
 		fcntl(new_socket, F_SETFL, O_NONBLOCK);
 		if (new_socket == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
