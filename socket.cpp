@@ -18,25 +18,10 @@
 #include "list_files.hpp"
 
 /*
-* create a new socket
-* returns socket id on success      */
-
-int	create_socket(void) {
-	int	socket_fd;
-
-	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (socket_fd < 0){
-        std::cout << "Failed to create socket, errno: " << errno << std::endl;
-		return (EXIT_FAILURE);
-	}
-	return (socket_fd);
-}
-
-/*
 * bind a port to a socket
-* returns 1 on success      */
+*/
 
-int	identify_socket(int socket, int port, sockaddr_in &address) {
+int	set_socket_settings(int socket, int port, sockaddr_in &address) {
 	memset((char *)&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -55,7 +40,7 @@ int	identify_socket(int socket, int port, sockaddr_in &address) {
 
 /*
 * make the socket prepared to accept connections (make it listen)
-* returns 1 on success      */
+*/
 
 int	listening_socket(int socket, int backlog) {
 	if (listen(socket, backlog) < 0) {
@@ -74,12 +59,6 @@ int	accept_socket(int socket, sockaddr_in address) {
 
 	address_len = sizeof(address);
 	new_socket = accept(socket, (struct sockaddr *)&address, (socklen_t *)&address_len);
-	if (new_socket < 0) {
-        std::cout << "Failed to grab connection, errno: " << errno << std::endl;
-        std::cout << " errno: " << EWOULDBLOCK << std::endl;
-		perror("");
-		return (EXIT_FAILURE);
-	}
 	return (new_socket);
 }
 
@@ -169,10 +148,12 @@ int	listen_to_new_socket(t_settings settings) {
 	//struct pollfd pfd_conns[SOMAXCONN];
 
 	for (int i = 0; i < nr_ports; i++) {
-		pfd_ports[i].fd = create_socket();
-		if (pfd_ports[i].fd == EXIT_FAILURE)
+		pfd_ports[i].fd = socket(AF_INET, SOCK_STREAM, 0);
+		if (pfd_ports[i].fd < 0) {
+			perror("Failed to create socket: ");
 			exit(EXIT_FAILURE);
-		if (identify_socket(pfd_ports[i].fd, settings.servers[i].listen_port, address) == EXIT_FAILURE)
+		}
+		if (set_socket_settings(pfd_ports[i].fd, settings.servers[i].listen_port, address) == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
 		fcntl(pfd_ports[i].fd, F_SETFL, O_NONBLOCK);
 		if (listening_socket(pfd_ports[i].fd, backlog) == EXIT_FAILURE)
@@ -188,10 +169,12 @@ int	listen_to_new_socket(t_settings settings) {
 			pfd_ports[0].revents = 0;
 			int	new_conn;
 			new_conn = accept_socket(pfd_ports[0].fd, address);
-			fcntl(new_conn, F_SETFL, O_NONBLOCK);
-			if (new_conn == EXIT_FAILURE)
-				exit(EXIT_FAILURE);
-			connections.insert(new_conn);
+			if (new_conn >= 0) {
+				fcntl(new_conn, F_SETFL, O_NONBLOCK);
+				if (new_conn == EXIT_FAILURE)
+					exit(EXIT_FAILURE);
+				connections.insert(new_conn);
+			}
 		}
 
 		for (std::set<int>::iterator iter = connections.begin(); iter != connections.end(); iter++) {

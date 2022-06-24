@@ -8,6 +8,7 @@ struct t_request {
 	std::string 						whole_request;
 	std::map<std::string, std::string>	headers;
 	std::string							body;
+	bool								done;
 };
 
 std::string get_body(const char *buffer, unsigned int i, long read_ret);
