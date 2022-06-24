@@ -91,11 +91,71 @@ int	method_allowed(std::string method, t_settings settings) {
 	return (1);
 }
 
+std::string handle_request(t_request request, t_settings settings) {
+	std::string resp;
+	std::map<std::string, std::string>	request_info;
+
+	request_info = request.headers;
+
+	if (!request_info["Request-URI"].compare(settings.redir_src))
+		request_info["Request-URI"].replace(0, settings.redir_dst.size(), settings.redir_dst);
+
+	std::string webpage;
+	if (request_info["Request-URI"].find('.') == std::string::npos) {
+		if (settings.servers[0].index.size()) {
+			webpage = settings.servers[0].root + request_info["Request-URI"] + settings.servers[0].index;
+		} else {
+			webpage = settings.servers[0].root + request_info["Request-URI"] + "/index.html";
+		}
+	} else {
+		webpage = settings.servers[0].root + request_info["Request-URI"];
+	}
+	// std::cout << "page: " << webpage << "\n";
+
+	if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].find(".py") != std::string::npos) {
+		if (request.headers["Method"] == "GET") {
+			resp = get_cgi(request);
+		}
+	}
+	else try {
+		if (request.headers["Method"] == "GET" && method_allowed("GET", settings)) {
+			try {
+				resp = get_response_from_page(webpage);
+			} catch (...) {
+				resp = not_found();
+			}
+		}
+		else if (request.headers["Method"] == "DELETE" && method_allowed("DELETE", settings)) {
+			resp = get_delete(webpage);
+		}
+		else if (request.headers["Method"] == "POST" && method_allowed("POST", settings)) {
+			resp = get_post(request, settings);
+		} else if (!method_allowed(request.headers["Method"], settings)){
+			t_response response;
+			response.body = "";
+			response.code = 405;
+			resp = response_to_string(response);
+		} else {
+			t_response response;
+			response.body = "";
+			response.code = 501;
+			resp = response_to_string(response);
+		}
+	} catch (...) {
+		if (!settings.servers[0].index.size() && request_info["Request-URI"].find('.') == std::string::npos && settings.servers[0].locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
+			resp = list_files(settings.servers[0].root + request_info["Request-URI"]);
+		}
+		else resp = not_found();
+	}
+	return resp;
+	// std::cout << resp << std::endl;
+}
+
+
 int	listen_to_new_socket(t_settings settings) {
 	struct sockaddr_in					address;
 	int									backlog = SOMAXCONN;	//how many requests can be backlogged
 	t_request							request;
-	std::map<std::string, std::string>	request_info;
 	std::set<int>						connections;
 	int nr_servers = settings.servers.size();
 	std::set<int> ports;
@@ -120,14 +180,14 @@ int	listen_to_new_socket(t_settings settings) {
 	}
 	while (1) {
 		/*
-		unsigned int i = 0;
-		for (std::set<int>::iterator iter = connections.begin(); iter != connections.end(); iter++) {
-			pfd_conn[i].fd = *iter;
-			pfd_conn[i].events = POLLIN;
-			pfd_conn[i].revents = 0;
-			i++;
-		}
-		*/
+		   unsigned int i = 0;
+		   for (std::set<int>::iterator iter = connections.begin(); iter != connections.end(); iter++) {
+		   pfd_conn[i].fd = *iter;
+		   pfd_conn[i].events = POLLIN;
+		   pfd_conn[i].revents = 0;
+		   i++;
+		   }
+		   */
 		poll(&*pfd_ports.begin(), nr_ports, -1);
 		connections.clear();
 		for (int i = 0; i < nr_ports; i++) {
@@ -146,60 +206,7 @@ int	listen_to_new_socket(t_settings settings) {
 		for (std::set<int>::iterator iter = connections.begin(); iter != connections.end(); iter++) {
 			int new_socket = *iter;
 			request = get_request_info(new_socket);
-			request_info = request.headers;
-
-			if (!request_info["Request-URI"].compare(settings.redir_src))
-				request_info["Request-URI"].replace(0, settings.redir_dst.size(), settings.redir_dst);
-
-			std::string webpage;
-			if (request_info["Request-URI"].find('.') == std::string::npos) {
-				if (settings.servers[0].index.size()) {
-					webpage = settings.servers[0].root + request_info["Request-URI"] + settings.servers[0].index;
-				} else {
-					webpage = settings.servers[0].root + request_info["Request-URI"] + "/index.html";
-				}
-			} else {
-				webpage = settings.servers[0].root + request_info["Request-URI"];
-			}
-			// std::cout << "page: " << webpage << "\n";
-			std::string resp;
-
-			if (request_info["Request-URI"].size() > 1 && request_info["Request-URI"].find(".py") != std::string::npos) {
-				if (request.headers["Method"] == "GET") {
-					resp = get_cgi(request);
-				}
-			}
-			else try {
-				if (request.headers["Method"] == "GET" && method_allowed("GET", settings)) {
-					try {
-						resp = get_response_from_page(webpage);
-					} catch (...) {
-						resp = not_found();
-					}
-				}
-				else if (request.headers["Method"] == "DELETE" && method_allowed("DELETE", settings)) {
-					resp = get_delete(webpage);
-				}
-				else if (request.headers["Method"] == "POST" && method_allowed("POST", settings)) {
-					resp = get_post(request, settings);
-				} else if (!method_allowed(request.headers["Method"], settings)){
-					t_response response;
-					response.body = "";
-					response.code = 405;
-					resp = response_to_string(response);
-				} else {
-					t_response response;
-					response.body = "";
-					response.code = 501;
-					resp = response_to_string(response);
-				}
-			} catch (...) {
-				if (!settings.servers[0].index.size() && request_info["Request-URI"].find('.') == std::string::npos && settings.servers[0].locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
-					resp = list_files(settings.servers[0].root + request_info["Request-URI"]);
-				}
-				else resp = not_found();
-			}
-			// std::cout << resp << std::endl;
+			std::string resp = handle_request(request, settings);
 			write(new_socket, resp.c_str(), resp.size());
 			close(new_socket);
 		}
