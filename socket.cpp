@@ -98,11 +98,17 @@ int	listen_to_new_socket(t_settings settings) {
 	std::map<std::string, std::string>	request_info;
 	std::set<int>						connections;
 	int nr_servers = settings.servers.size();
+	std::set<int> ports;
+	for (int i = 0; i < nr_servers; i++) {
+		ports.insert(settings.servers[i].listen_port);
+	}
+	int nr_ports = ports.size();
+
 	struct pollfd pfd_init = {-1, POLLIN, 0};
-	std::vector<struct pollfd> pfd_sockets(nr_servers, pfd_init);
+	std::vector<struct pollfd> pfd_sockets(nr_ports, pfd_init);
 	//struct pollfd pfd_conn[SOMAXCONN];
 
-	for (int i = 0; i < nr_servers; i++) {
+	for (int i = 0; i < nr_ports; i++) {
 		pfd_sockets[i].fd = create_socket();
 		if (pfd_sockets[i].fd == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
@@ -122,7 +128,8 @@ int	listen_to_new_socket(t_settings settings) {
 			i++;
 		}
 		*/
-		poll(&*pfd_sockets.begin(), nr_servers, -1);
+
+		poll(&*pfd_sockets.begin(), nr_ports, -1);
 		if (!(pfd_sockets[0].revents & POLLIN)) {
 			continue;
 		}
