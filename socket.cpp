@@ -98,40 +98,45 @@ int	listen_to_new_socket(t_settings settings) {
 	std::map<std::string, std::string>	request_info;
 	std::set<int>						connections;
 	int nr_servers = settings.servers.size();
-	std::vector<int> server_sockets(nr_servers, -1);
-	struct pollfd pfd[SOMAXCONN];
-
+	std::set<int> ports;
 	for (int i = 0; i < nr_servers; i++) {
-		server_sockets[i] = create_socket();
-		if (server_sockets[i] == EXIT_FAILURE)
+		ports.insert(settings.servers[i].listen_port);
+	}
+	int nr_ports = ports.size();
+
+	struct pollfd pfd_init = {-1, POLLIN, 0};
+	std::vector<struct pollfd> pfd_sockets(nr_ports, pfd_init);
+	//struct pollfd pfd_conn[SOMAXCONN];
+
+	for (int i = 0; i < nr_ports; i++) {
+		pfd_sockets[i].fd = create_socket();
+		if (pfd_sockets[i].fd == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
-		if (identify_socket(server_sockets[i], settings.servers[i].listen_port, address) == EXIT_FAILURE)
+		if (identify_socket(pfd_sockets[i].fd, settings.servers[i].listen_port, address) == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
-		fcntl(server_sockets[i], F_SETFL, O_NONBLOCK);
-		if (listening_socket(server_sockets[i], backlog) == EXIT_FAILURE)
+		fcntl(pfd_sockets[i].fd, F_SETFL, O_NONBLOCK);
+		if (listening_socket(pfd_sockets[i].fd, backlog) == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
 	}
-	pfd[0].events = POLLIN;
-	pfd[0].revents = 0;
-	pfd[0].fd = server_sockets[0];
-
 	while (1) {
-		unsigned int i = 1;
+		/*
+		unsigned int i = 0;
 		for (std::set<int>::iterator iter = connections.begin(); iter != connections.end(); iter++) {
-			pfd[i].fd = *iter;
-			pfd[i].events = POLLIN;
-			pfd[i].revents = 0;
+			pfd_conn[i].fd = *iter;
+			pfd_conn[i].events = POLLIN;
+			pfd_conn[i].revents = 0;
 			i++;
 		}
-		unsigned int	poll_size = 1 + connections.size();
-		poll(pfd, poll_size, -1);
-		if (!(pfd[0].revents & POLLIN)) {
+		*/
+
+		poll(&*pfd_sockets.begin(), nr_ports, -1);
+		if (!(pfd_sockets[0].revents & POLLIN)) {
 			continue;
 		}
-		pfd[0].revents = 0;
+		pfd_sockets[0].revents = 0;
 
 		int	new_socket;
-		new_socket = accept_socket(server_sockets[0], address);
+		new_socket = accept_socket(pfd_sockets[0].fd, address);
 		fcntl(new_socket, F_SETFL, O_NONBLOCK);
 		if (new_socket == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
