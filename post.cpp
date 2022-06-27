@@ -46,7 +46,7 @@ std::string get_post(t_request request, t_settings settings) {
 	close(fd);
 	
 	std::cout << "done!\n";
-	response.body = "your file has been saved!\r\n";
+	response.body = "your file has been saved!\r\n<a href=\"/../\">Go to home page</a>\r\n";
 	response.code = 200;
 	return response_to_string(response);
 }

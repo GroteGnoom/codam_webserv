@@ -182,7 +182,9 @@ int	listen_to_new_socket(t_settings settings) {
 					exit(EXIT_FAILURE);
 				new_conn.request.read_once = false;
 				new_conn.request.done = false;
+				new_conn.request.done_reading = false;
 				new_conn.request.cancelled = false;
+				new_conn.request.written = 0;
 				connections.insert(new_conn);
 				std::cout << "new connection\n";
 			}
@@ -192,18 +194,18 @@ int	listen_to_new_socket(t_settings settings) {
 			//std::cout << "looping over connections!\n";
 			const t_request *rpc = &(iter->request);
 			t_request *rp = const_cast<t_request *>(rpc); //TODO why is this required
-			get_request_info(iter->fd, rp);
+			get_request_info(iter->fd, rp, "");
 			//std::cout << connections.size() << "\n";
+			if (iter->request.done_reading) {
+				std::cout << "request done!\n";
+				std::cout << rp->whole_request << "\n";
+				std::cout << rp->headers["Method"] << "\n";
+				std::string resp = handle_request(iter->request, settings); //only when a whole request is finished
+				get_request_info(iter->fd, rp, resp);
+				std::cout << connections.size() << "\n";
+			}
 			if (iter->request.cancelled || iter->request.done) {
-				if (iter->request.done) {
-					std::cout << "request done!\n";
-					std::cout << rp->whole_request << "\n";
-					std::cout << rp->headers["Method"] << "\n";
-					std::string resp = handle_request(iter->request, settings); //only when a whole request is finished
-					write(iter->fd, resp.c_str(), resp.size());
-					close(iter->fd);
-					std::cout << connections.size() << "\n";
-				}
+				close(iter->fd);
 				std::set<t_connection>::iterator next = iter;
 				next++;
 				connections.erase(iter);
