@@ -74,7 +74,7 @@ int	method_allowed(std::string method, t_settings settings) {
 std::string handle_request(t_request request, t_settings settings) {
 	std::string resp;
 	std::string uri = request.headers["Request-URI"];
-	std::string method = request.headers["method"];
+	std::string method = request.headers["Method"];
 
 	if (!uri.compare(settings.redir_src))
 		uri.replace(0, settings.redir_dst.size(), settings.redir_dst);
@@ -89,7 +89,7 @@ std::string handle_request(t_request request, t_settings settings) {
 	} else {
 		webpage = settings.servers[0].root + uri;
 	}
-	// std::cout << "page: " << webpage << "\n";
+	std::cout << "page: " << webpage << "\n";
 
 	if (uri.size() > 1 && uri.find(".py") != std::string::npos) {
 		if (method == "GET") {
@@ -126,8 +126,8 @@ std::string handle_request(t_request request, t_settings settings) {
 		}
 		else resp = not_found();
 	}
+	std::cout << resp << std::endl;
 	return resp;
-	// std::cout << resp << std::endl;
 }
 
 
@@ -141,6 +141,7 @@ int	listen_to_new_socket(t_settings settings) {
 	for (int i = 0; i < nr_servers; i++) {
 		ports.insert(settings.servers[i].listen_port);
 	}
+	std::vector<int> port_vec(ports.begin(), ports.end());
 	int nr_ports = ports.size();
 
 	struct pollfd pfd_init = {-1, POLLIN, 0};
@@ -153,7 +154,7 @@ int	listen_to_new_socket(t_settings settings) {
 			perror("Failed to create socket: ");
 			exit(EXIT_FAILURE);
 		}
-		if (set_socket_settings(pfd_ports[i].fd, settings.servers[i].listen_port, address) == EXIT_FAILURE)
+		if (set_socket_settings(pfd_ports[i].fd, port_vec[i], address) == EXIT_FAILURE)
 			exit(EXIT_FAILURE);
 		fcntl(pfd_ports[i].fd, F_SETFL, O_NONBLOCK);
 		if (listening_socket(pfd_ports[i].fd, backlog) == EXIT_FAILURE)
@@ -174,15 +175,23 @@ int	listen_to_new_socket(t_settings settings) {
 				if (new_conn == EXIT_FAILURE)
 					exit(EXIT_FAILURE);
 				connections.insert(new_conn);
+				std::cout << "new connection\n";
 			}
 		}
-
-		for (std::set<int>::iterator iter = connections.begin(); iter != connections.end(); iter++) {
+		std::set<int>::iterator iter = connections.begin();
+		while ( iter != connections.end()) {
 			int new_socket = *iter;
 			request = get_request_info(new_socket);
-			std::string resp = handle_request(request, settings);
+			std::cout << request.headers["Request-URI"] << "\n";
+			std::cout << request.headers["Method"] << "\n";
+			std::string resp = handle_request(request, settings); //only when a whole request is finished
 			write(new_socket, resp.c_str(), resp.size());
 			close(new_socket);
+			std::set<int>::iterator next = iter;
+			next++;
+			connections.erase(iter);
+			iter = next;
+			std::cout << "connection removed\n";
 		}
 	}
 }

@@ -9,5 +9,6 @@ int main(int argc, char **argv) {
     } else {
 		settings = read_conf(argv[1]);
 	}
+	std::cout << "server started\n";
     listen_to_new_socket(settings);
 }
