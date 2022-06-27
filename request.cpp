@@ -89,7 +89,7 @@ void	get_request_info(int socket, t_request *request) {
 	read_ret = 1;
 
 	poll(&pfd, 1, 0);
-	std::cout << "poll\n";
+	//std::cout << "poll\n";
 	if (!(pfd.revents & POLL_IN)) {
 		if (request->read_once) {
 			//I think this means we've reached EOF
@@ -108,11 +108,12 @@ void	get_request_info(int socket, t_request *request) {
 		perror("Failed to read: ");
 		exit(EXIT_FAILURE);
 	}
+	if (!read_ret) {
+		request->cancelled = true;
+		std::cout << "cancelled\n";
+		return;
+	}
 
 	request->read_once = true;
 	request->whole_request += std::string(buffer, buffer + read_ret);
-	//I think this never happens
-	//if (!read_ret)
-		//maybe this should remove the connection?
-		//break;
 }

@@ -10,6 +10,7 @@ struct t_request {
 	std::string							body;
 	bool								read_once;
 	bool								done;
+	bool								cancelled;
 };
 
 std::string get_body(const char *buffer, unsigned int i, long read_ret);
