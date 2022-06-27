@@ -89,7 +89,7 @@ std::string handle_request(t_request request, t_settings settings) {
 	} else {
 		webpage = settings.servers[0].root + uri;
 	}
-	std::cout << "page: " << webpage << "\n";
+	// std::cout << "page: " << webpage << "\n";
 
 	if (uri.size() > 1 && uri.find(".py") != std::string::npos) {
 		if (method == "GET") {
@@ -127,13 +127,14 @@ std::string handle_request(t_request request, t_settings settings) {
 		}
 		else resp = not_found();
 	}
-	std::cout << resp << std::endl;
+	// std::cout << resp << std::endl;
 	return resp;
 }
 
 struct t_connection {
 	int			fd;
 	t_request	request;
+	std::string resp;
 	bool operator <(const t_connection &other) const {
 		return fd < other.fd;
 	}
@@ -183,10 +184,11 @@ int	listen_to_new_socket(t_settings settings) {
 				new_conn.request.read_once = false;
 				new_conn.request.done = false;
 				new_conn.request.done_reading = false;
+				new_conn.request.done_processing = false;
 				new_conn.request.cancelled = false;
 				new_conn.request.written = 0;
 				connections.insert(new_conn);
-				std::cout << "new connection\n";
+				// std::cout << "new connection\n";
 			}
 		}
 		std::set<t_connection>::iterator iter = connections.begin();
@@ -194,15 +196,20 @@ int	listen_to_new_socket(t_settings settings) {
 			//std::cout << "looping over connections!\n";
 			const t_request *rpc = &(iter->request);
 			t_request *rp = const_cast<t_request *>(rpc); //TODO why is this required
-			get_request_info(iter->fd, rp, "");
+			const std::string *response = &(iter->resp);
+			std::string *resp = const_cast<std::string *>(response); //TODO why is this required
+			get_request_info(iter->fd, rp, resp);
 			//std::cout << connections.size() << "\n";
 			if (iter->request.done_reading) {
-				std::cout << "request done!\n";
-				std::cout << rp->whole_request << "\n";
-				std::cout << rp->headers["Method"] << "\n";
-				std::string resp = handle_request(iter->request, settings); //only when a whole request is finished
-				get_request_info(iter->fd, rp, resp);
-				std::cout << connections.size() << "\n";
+				// std::cout << "request done reading!\n";
+				// std::cout << rp->whole_request << "\n";
+				// std::cout << rp->headers["Method"] << "\n";
+				if (!iter->request.done_processing) {
+					*resp = handle_request(iter->request, settings); //only when a whole request is finished
+					rp->done_processing = true;
+				}
+				// get_request_info(iter->fd, rp, resp);
+				// std::cout << connections.size() << "\n";
 			}
 			if (iter->request.cancelled || iter->request.done) {
 				close(iter->fd);
@@ -210,8 +217,8 @@ int	listen_to_new_socket(t_settings settings) {
 				next++;
 				connections.erase(iter);
 				iter = next;
-				std::cout << "connection removed\n";
-				std::cout << connections.size() << "\n";
+				// std::cout << "connection removed\n";
+				// std::cout << connections.size() << "\n";
 				//exit(0);
 			} else {
 				iter++;

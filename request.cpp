@@ -71,7 +71,7 @@ void split_up_request(t_request *request) {
 		request->body = request->whole_request.substr(i, request->whole_request.size() - i);
 }
 
-void	get_request_info(int socket, t_request *request, std::string resp) {
+void	get_request_info(int socket, t_request *request, std::string *resp) {
 	char								buffer[BUFSIZE] = {0};
 	long								read_ret;
 	std::string							value;
@@ -89,41 +89,57 @@ void	get_request_info(int socket, t_request *request, std::string resp) {
 	read_ret = 1;
 
 	poll(&pfd, 1, 0);
-	//std::cout << "poll\n";
+	std::cout << POLL_IN;
+	if (!(pfd.revents & POLL_IN) && !(pfd.revents & POLL_OUT)) {
+		if (request->done_processing && request->written) {
+			request->done = true;
+			std::cout << "done\n";
+			return;
+		}
+	}
 	if (!request->done_reading) {
-		if (!(pfd.revents & POLL_IN)) {
+		if (!(pfd.revents & POLL_IN) && !(pfd.revents & POLL_OUT)) {
 			if (request->read_once) {
 				//I think this means we've reached EOF
 				request->done_reading = true;
-				std::cout << "done\n";
+				std::cout << "done reading\n";
 				split_up_request(request); //after request is done
 			}
 			return;
 		}
-		read_ret = read(socket, buffer, BUFSIZE);
+		else if (pfd.revents & POLL_IN) {
+			read_ret = read(socket, buffer, BUFSIZE);
 
-		if (read_ret < 0) {
-			//maybe this should just remove the connection?
-			//we are not allowed to check errno
-			std::cout << "Failed to read, errno: " << errno << std::endl;
-			perror("Failed to read: ");
+			if (read_ret < 0) {
+				//maybe this should just remove the connection?
+				//we are not allowed to check errno
+				std::cout << "Failed to read, errno: " << errno << std::endl;
+				perror("Failed to read: ");
+				exit(EXIT_FAILURE);
+			}
+			if (!read_ret) {
+				request->cancelled = true;
+				// std::cout << "cancelled\n";
+				return;
+			}
+
+			request->read_once = true;
+			request->whole_request += std::string(buffer, buffer + read_ret);
+		}
+	}
+	else if (pfd.revents & POLL_OUT) {
+		std::cout << "written: " << request->written << std::endl;
+		// std::cout << "resp size: " << resp->size() << std::endl;
+		ssize_t	write_ret = write(socket, resp->c_str() + request->written, resp->size() - request->written);
+		if (write_ret < 0) {
+			std::cout << "Failed to write, errno: " << errno << std::endl;
+			perror("Failed to write: ");
 			exit(EXIT_FAILURE);
 		}
-		if (!read_ret) {
-			request->cancelled = true;
-			std::cout << "cancelled\n";
-			return;
-		}
-
-		request->read_once = true;
-		request->whole_request += std::string(buffer, buffer + read_ret);
-	}
-	else {
-		if (!(pfd.revents & POLL_OUT)) {
-			request->written += write(socket, resp.c_str() + request->written, resp.size() - request->written);
-			if (request->written == (ssize_t)resp.size()) {
-				request->done = true;
-			}
+		request->written += write_ret;
+		// std::cout << "written: " << request->written << std::endl;
+		if (request->written == (ssize_t)resp->size()) {
+			request->done = true;
 		}
 	}
 }
