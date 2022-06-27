@@ -54,30 +54,27 @@ std::map<std::string, std::string>	get_first_line(std::map<std::string, std::str
 
 #define BUFSIZE 1024
 
-t_request split_up_request(t_request request, long read_ret) {
+void split_up_request(t_request *request) {
 	std::map<std::string, std::string>	request_info;
 	unsigned int 						i = 0;
 
-	request_info = get_first_line(request_info, request.whole_request.c_str(), &i, read_ret);
-	while (request.whole_request[i] != '\r' && i < request.whole_request.size()) {
-		request_info = get_current_pair(request_info, request.whole_request.c_str(), &i, read_ret);
+	request_info = get_first_line(request_info, request->whole_request.c_str(), &i, request->whole_request.size());
+	while (request->whole_request[i] != '\r' && i < request->whole_request.size()) {
+		request_info = get_current_pair(request_info, request->whole_request.c_str(), &i, request->whole_request.size());
 		i++;
 	}
 	i++;
 
-	request.headers = request_info;
+	request->headers = request_info;
 
-	if (i < request.whole_request.size())
-		request.body = request.whole_request.substr(i, request.whole_request.size() - i);
-	return (request);
+	if (i < request->whole_request.size())
+		request->body = request->whole_request.substr(i, request->whole_request.size() - i);
 }
 
-t_request	get_request_info(int socket) {
+void	get_request_info(int socket, t_request *request) {
 	char								buffer[BUFSIZE] = {0};
 	long								read_ret;
 	std::string							value;
-	t_request							request;
-	bool 								read_once = 0;
 	struct pollfd 						pfd;
 
 	//for POLL_HUP
@@ -91,30 +88,31 @@ t_request	get_request_info(int socket) {
 	pfd.fd = socket;
 	read_ret = 1;
 
-	while(read_ret) {
-		poll(&pfd, 1, -1);
-		if (!(pfd.revents & POLL_IN)) {
-			if (read_once)
-				//I think this means we've reached EOF
-				break;
-			continue;
+	poll(&pfd, 1, 0);
+	std::cout << "poll\n";
+	if (!(pfd.revents & POLL_IN)) {
+		if (request->read_once) {
+			//I think this means we've reached EOF
+			request->done = true;
+			std::cout << "done\n";
+			split_up_request(request); //after request is done
 		}
-		read_ret = read(socket, buffer, BUFSIZE);
-
-		if (read_ret < 0) {
-			//maybe this should just remove the connection?
-			//we are not allowed to check errno
-			std::cout << "Failed to read, errno: " << errno << std::endl;
-			exit(EXIT_FAILURE);
-		}
-
-		read_once = 1;
-		request.whole_request += std::string(buffer, buffer + read_ret);
-
-		//I think this never happens
-		if (!read_ret)
-			//maybe this should remove the connection?
-			break;
+		return;
 	}
-	return split_up_request(request, read_ret);
+	read_ret = read(socket, buffer, BUFSIZE);
+
+	if (read_ret < 0) {
+		//maybe this should just remove the connection?
+		//we are not allowed to check errno
+		std::cout << "Failed to read, errno: " << errno << std::endl;
+		perror("Failed to read: ");
+		exit(EXIT_FAILURE);
+	}
+
+	request->read_once = true;
+	request->whole_request += std::string(buffer, buffer + read_ret);
+	//I think this never happens
+	//if (!read_ret)
+		//maybe this should remove the connection?
+		//break;
 }

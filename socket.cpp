@@ -130,12 +130,18 @@ std::string handle_request(t_request request, t_settings settings) {
 	return resp;
 }
 
+struct t_connection {
+	int			fd;
+	t_request	request;
+	bool operator <(const t_connection &other) const {
+		return fd < other.fd;
+	}
+};
 
 int	listen_to_new_socket(t_settings settings) {
 	struct sockaddr_in					address;
 	int									backlog = SOMAXCONN;	//how many requests can be backlogged
-	t_request							request;
-	std::set<int>						connections;
+	std::set<t_connection>				connections;
 	int nr_servers = settings.servers.size();
 	std::set<int> ports;
 	for (int i = 0; i < nr_servers; i++) {
@@ -161,37 +167,45 @@ int	listen_to_new_socket(t_settings settings) {
 			exit(EXIT_FAILURE);
 	}
 	while (1) {
-		poll(&*pfd_ports.begin(), nr_ports, -1);
-		connections.clear();
+		poll(&*pfd_ports.begin(), nr_ports, 0);
 		for (int i = 0; i < nr_ports; i++) {
 			if (!(pfd_ports[i].revents & POLLIN)) {
 				continue;
 			}
 			pfd_ports[0].revents = 0;
-			int	new_conn;
-			new_conn = accept_socket(pfd_ports[0].fd, address);
-			if (new_conn >= 0) {
-				fcntl(new_conn, F_SETFL, O_NONBLOCK);
-				if (new_conn == EXIT_FAILURE)
+			t_connection	new_conn;
+			new_conn.fd = accept_socket(pfd_ports[0].fd, address);
+			if (new_conn.fd >= 0) {
+				fcntl(new_conn.fd, F_SETFL, O_NONBLOCK);
+				if (new_conn.fd == EXIT_FAILURE)
 					exit(EXIT_FAILURE);
+				new_conn.request.read_once = false;
+				new_conn.request.done = false;
 				connections.insert(new_conn);
 				std::cout << "new connection\n";
 			}
 		}
-		std::set<int>::iterator iter = connections.begin();
+		std::set<t_connection>::iterator iter = connections.begin();
 		while ( iter != connections.end()) {
-			int new_socket = *iter;
-			request = get_request_info(new_socket);
-			std::cout << request.headers["Request-URI"] << "\n";
-			std::cout << request.headers["Method"] << "\n";
-			std::string resp = handle_request(request, settings); //only when a whole request is finished
-			write(new_socket, resp.c_str(), resp.size());
-			close(new_socket);
-			std::set<int>::iterator next = iter;
-			next++;
-			connections.erase(iter);
-			iter = next;
-			std::cout << "connection removed\n";
+			std::cout << "looping over connections!\n";
+			const t_request *rpc = &(iter->request);
+			t_request *rp = const_cast<t_request *>(rpc); //TODO why is this required
+			get_request_info(iter->fd, rp);
+			if (iter->request.done) {
+				std::cout << "request done!\n";
+				std::cout << rp->whole_request << "\n";
+				std::cout << rp->headers["Method"] << "\n";
+				std::string resp = handle_request(iter->request, settings); //only when a whole request is finished
+				write(iter->fd, resp.c_str(), resp.size());
+				close(iter->fd);
+				std::set<t_connection>::iterator next = iter;
+				next++;
+				connections.erase(iter);
+				iter = next;
+				std::cout << "connection removed\n";
+			} else {
+				iter++;
+			}
 		}
 	}
 }
