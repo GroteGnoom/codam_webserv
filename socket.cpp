@@ -71,23 +71,45 @@ int	method_allowed(std::string method, t_settings settings) {
 	return (1);
 }
 
-std::string handle_request(t_request request, t_settings settings) {
+t_server get_server(t_settings settings, int port, t_request request) {
+	std::cout << "host: " << request.headers["Host"] << "\n";
+	std::string host = request.headers["Host"].substr(0, request.headers["Host"].find(':'));
+	std::cout << "host: " << host << "\n";
+	for (size_t i = 0; i < settings.servers.size(); i++) {
+		std::cout << "name: " << settings.servers[i].name << "\n";
+		if (port == settings.servers[i].listen_port && host == settings.servers[i].name) {
+			std::cout << "found server: " << i << "\n";
+			return settings.servers[i];
+		}
+	}
+	for (size_t i = 0; i < settings.servers.size(); i++) {
+		if (port == settings.servers[i].listen_port) {
+			std::cout << "using default server: " << i << "\n";
+			return settings.servers[i];
+		}
+	}
+	std::cerr << "port not found in get_server, should never happen\n";
+	exit(1);
+}
+
+std::string handle_request(t_request request, t_settings settings, int port) {
 	std::string resp;
 	std::string uri = request.headers["Request-URI"];
 	std::string method = request.headers["Method"];
+	t_server server = get_server(settings, port, request);
 
 	if (!uri.compare(settings.redir_src))
 		uri.replace(0, settings.redir_dst.size(), settings.redir_dst);
 
 	std::string webpage;
 	if (uri.find('.') == std::string::npos) {
-		if (settings.servers[0].index.size()) {
-			webpage = settings.servers[0].root + uri + settings.servers[0].index;
+		if (server.index.size()) {
+			webpage = server.root + uri + server.index;
 		} else {
-			webpage = settings.servers[0].root + uri + "/index.html";
+			webpage = server.root + uri + "/index.html";
 		}
 	} else {
-		webpage = settings.servers[0].root + uri;
+		webpage = server.root + uri;
 	}
 	// std::cout << "page: " << webpage << "\n";
 
@@ -122,8 +144,8 @@ std::string handle_request(t_request request, t_settings settings) {
 			resp = response_to_string(response);
 		}
 	} catch (...) {
-		if (!settings.servers[0].index.size() && uri.find('.') == std::string::npos && settings.servers[0].locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
-			resp = list_files(settings.servers[0].root + uri);
+		if (!server.index.size() && uri.find('.') == std::string::npos && server.locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
+			resp = list_files(server.root + uri);
 		}
 		else resp = not_found();
 	}
@@ -132,9 +154,10 @@ std::string handle_request(t_request request, t_settings settings) {
 }
 
 struct t_connection {
+	int			port;
 	int			fd;
 	t_request	request;
-	std::string resp;
+	std::string	resp;
 	bool operator <(const t_connection &other) const {
 		return fd < other.fd;
 	}
@@ -145,12 +168,14 @@ int	listen_to_new_socket(t_settings settings) {
 	int									backlog = SOMAXCONN;	//how many requests can be backlogged
 	std::set<t_connection>				connections;
 	int nr_servers = settings.servers.size();
+	std::cout << "nr servers: " << settings.servers.size() << "\n";
 	std::set<int> ports;
 	for (int i = 0; i < nr_servers; i++) {
 		ports.insert(settings.servers[i].listen_port);
 	}
 	std::vector<int> port_vec(ports.begin(), ports.end());
 	int nr_ports = ports.size();
+	std::cout << "nr ports: " << nr_ports << "\n";
 
 	struct pollfd pfd_init = {-1, POLLIN | POLLOUT, 0};
 	std::vector<struct pollfd> pfd_ports(nr_ports, pfd_init);
@@ -177,15 +202,16 @@ int	listen_to_new_socket(t_settings settings) {
 			if (!(pfd_ports[i].revents & POLLIN)) {
 				continue;
 			}
-			pfd_ports[0].revents = 0;
+			pfd_ports[i].revents = 0;
 			t_connection	new_conn;
-			new_conn.fd = accept_socket(pfd_ports[0].fd, address);
+			new_conn.fd = accept_socket(pfd_ports[i].fd, address);
 			if (new_conn.fd >= 0) {
 				fcntl(new_conn.fd, F_SETFL, O_NONBLOCK);
 				if (new_conn.fd == EXIT_FAILURE)
 					exit(EXIT_FAILURE);
 				new_conn.request.state = RS_START;
 				new_conn.request.written = 0;
+				new_conn.port = port_vec[i];
 				connections.insert(new_conn);
 				// std::cout << "new connection\n";
 			}
@@ -203,7 +229,7 @@ int	listen_to_new_socket(t_settings settings) {
 				// std::cout << "request done reading!\n";
 				// std::cout << rp->whole_request << "\n";
 				// std::cout << rp->headers["Method"] << "\n";
-				*resp = handle_request(iter->request, settings); //only when a whole request is finished
+				*resp = handle_request(iter->request, settings, iter->port); //only when a whole request is finished
 				rp->state = RS_WRITING;
 				std::cout << "done processing, now writing\n";
 				// get_request_info(iter->fd, rp, resp);

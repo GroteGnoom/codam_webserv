@@ -92,6 +92,7 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 	//std::cout << POLLIN;
 	//if (!(pfd.revents & POLLOUT))
 	//	std::cout << "no POLLOUT\n";
+	/*
 	if ((pfd.revents)) {
 		std::cout << "state: " << request->state << "\n";
 		std::cout << "poll in: " << POLLIN << "\n";
@@ -101,6 +102,7 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 		std::cout << "poll nval: " << POLLNVAL << "\n";
 		std::cout << "poll: connection: " << pfd.revents << "\n";
 	}
+	*/
 	if (pfd.revents & POLLHUP) {
 		if (request->state == RS_WRITING && request->written) {
 			request->state = RS_DONE;
@@ -169,7 +171,7 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 		} */
 	}
 	else if (pfd.revents & POLLOUT) {
-		std::cout << "written before: " << request->written << std::endl;
+		//std::cout << "written before: " << request->written << std::endl;
 		// std::cout << "resp size: " << resp->size() << std::endl;
 		ssize_t	write_ret = write(socket, resp->c_str() + request->written, resp->size() - request->written);
 		if (write_ret < 0) {
@@ -178,7 +180,7 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 			exit(EXIT_FAILURE);
 		}
 		request->written += write_ret;
-		std::cout << "written after: " << request->written << std::endl;
+		//std::cout << "written after: " << request->written << std::endl;
 		if (request->written == (ssize_t)resp->size()) {
 			std::cout << "writing done\n";
 			request->state = RS_DONE;
