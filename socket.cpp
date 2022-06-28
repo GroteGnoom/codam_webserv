@@ -152,7 +152,7 @@ int	listen_to_new_socket(t_settings settings) {
 	std::vector<int> port_vec(ports.begin(), ports.end());
 	int nr_ports = ports.size();
 
-	struct pollfd pfd_init = {-1, POLLIN, 0};
+	struct pollfd pfd_init = {-1, POLLIN | POLLOUT, 0};
 	std::vector<struct pollfd> pfd_ports(nr_ports, pfd_init);
 	//struct pollfd pfd_conns[SOMAXCONN];
 
@@ -170,6 +170,9 @@ int	listen_to_new_socket(t_settings settings) {
 	}
 	while (1) {
 		poll(&*pfd_ports.begin(), nr_ports, 0);
+		if ((pfd_ports.begin()->revents)) {
+			std::cout << "poll port: " << pfd_ports.begin()->revents << "\n";
+		}
 		for (int i = 0; i < nr_ports; i++) {
 			if (!(pfd_ports[i].revents & POLLIN)) {
 				continue;
@@ -181,11 +184,7 @@ int	listen_to_new_socket(t_settings settings) {
 				fcntl(new_conn.fd, F_SETFL, O_NONBLOCK);
 				if (new_conn.fd == EXIT_FAILURE)
 					exit(EXIT_FAILURE);
-				new_conn.request.read_once = false;
-				new_conn.request.done = false;
-				new_conn.request.done_reading = false;
-				new_conn.request.done_processing = false;
-				new_conn.request.cancelled = false;
+				new_conn.request.state = RS_START;
 				new_conn.request.written = 0;
 				connections.insert(new_conn);
 				// std::cout << "new connection\n";
@@ -200,18 +199,17 @@ int	listen_to_new_socket(t_settings settings) {
 			std::string *resp = const_cast<std::string *>(response); //TODO why is this required
 			get_request_info(iter->fd, rp, resp);
 			//std::cout << connections.size() << "\n";
-			if (iter->request.done_reading) {
+			if (iter->request.state == RS_PROCESSING) {
 				// std::cout << "request done reading!\n";
 				// std::cout << rp->whole_request << "\n";
 				// std::cout << rp->headers["Method"] << "\n";
-				if (!iter->request.done_processing) {
-					*resp = handle_request(iter->request, settings); //only when a whole request is finished
-					rp->done_processing = true;
-				}
+				*resp = handle_request(iter->request, settings); //only when a whole request is finished
+				rp->state = RS_WRITING;
+				std::cout << "done processing, now writing\n";
 				// get_request_info(iter->fd, rp, resp);
 				// std::cout << connections.size() << "\n";
 			}
-			if (iter->request.cancelled || iter->request.done) {
+			if (iter->request.state == RS_CANCELLED || iter->request.state == RS_DONE) {
 				close(iter->fd);
 				std::set<t_connection>::iterator next = iter;
 				next++;

@@ -4,15 +4,20 @@
 #include <iostream>
 #include <unistd.h>
 
+enum request_state {
+	RS_START,
+	RS_READ_ONCE,
+	RS_PROCESSING,
+	RS_WRITING,
+	RS_DONE,
+	RS_CANCELLED,
+};
+
 struct t_request {
 	std::string 						whole_request;
 	std::map<std::string, std::string>	headers;
 	std::string							body;
-	bool								read_once;
-	bool								done_reading;
-	bool								done_processing;
-	bool								done;
-	bool								cancelled;
+	request_state						state;
 	ssize_t								written;
 };
 

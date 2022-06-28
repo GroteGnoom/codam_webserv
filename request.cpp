@@ -77,57 +77,98 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 	std::string							value;
 	struct pollfd 						pfd;
 
-	//for POLL_HUP
+	//for POLLHUP
 	//man literally says: This flag is
 	//output only, and ignored if present in the input events
 	// but that's not true!
-	//We also need POLL_OUT. That's just a rule in the subject, checking for read and write needs to be done at the same time
+	//We also need POLLOUT. That's just a rule in the subject, checking for read and write needs to be done at the same time
 
-	pfd.events = POLL_IN | POLL_HUP | POLL_OUT;
+	pfd.events = POLLIN | POLLOUT;
 	pfd.revents = 0;
 	pfd.fd = socket;
 	read_ret = 1;
 
 	poll(&pfd, 1, 0);
-	std::cout << POLL_IN;
-	if (!(pfd.revents & POLL_IN) && !(pfd.revents & POLL_OUT)) {
-		if (request->done_processing && request->written) {
-			request->done = true;
+	//std::cout << POLLIN;
+	//if (!(pfd.revents & POLLOUT))
+	//	std::cout << "no POLLOUT\n";
+	if ((pfd.revents)) {
+		std::cout << "state: " << request->state << "\n";
+		std::cout << "poll in: " << POLLIN << "\n";
+		std::cout << "poll out: " << POLLOUT << "\n";
+		std::cout << "poll hup: " << POLLHUP << "\n";
+		std::cout << "poll err: " << POLLERR << "\n";
+		std::cout << "poll nval: " << POLLNVAL << "\n";
+		std::cout << "poll: connection: " << pfd.revents << "\n";
+	}
+	if (!(pfd.revents & POLLIN) && !(pfd.revents & POLLOUT)) {
+		if (request->state == RS_WRITING && request->written) {
+			request->state = RS_DONE;
 			std::cout << "done\n";
 			return;
 		}
 	}
-	if (!request->done_reading) {
-		if (!(pfd.revents & POLL_IN) && !(pfd.revents & POLL_OUT)) {
-			if (request->read_once) {
-				//I think this means we've reached EOF
-				request->done_reading = true;
-				std::cout << "done reading\n";
-				split_up_request(request); //after request is done
+	//std::cout << "checking read and write\n";
+	if (request->state == RS_START) {
+		if (pfd.revents & POLLIN) {
+			read_ret = read(socket, buffer, BUFSIZE);
+			std::cout << "did first read\n";
+			if (read_ret < 0) {
+				request->state = RS_CANCELLED;
+				std::cout << "cancelled, ret < 0\n";
+				return;
 			}
+			if (!read_ret) {
+				request->state = RS_CANCELLED;
+				std::cout << "cancelled, no first read\n";
+				return;
+			}
+			request->state = RS_READ_ONCE;
+			request->whole_request += std::string(buffer, buffer + read_ret);
+			std::cout << "first read done: " << request->whole_request.size() << "\n";
+		}
+		return;
+	}
+	if (request->state == RS_READ_ONCE) {
+		//if (!(pfd.revents & POLLIN) && !(pfd.revents & POLLOUT)) {
+		if (pfd.revents & POLLOUT) {
+			//I think this means we've reached EOF
+			request->state = RS_PROCESSING;
+			read_ret = read(socket, buffer, BUFSIZE);
+			std::cout << "done reading\n";
+			split_up_request(request); //after request is done
 			return;
 		}
-		else if (pfd.revents & POLL_IN) {
+		else if (pfd.revents & POLLIN) {
+			std::cout << "read in\n";
 			read_ret = read(socket, buffer, BUFSIZE);
+			std::cout << "did a read\n";
 
 			if (read_ret < 0) {
 				//maybe this should just remove the connection?
 				//we are not allowed to check errno
-				std::cout << "Failed to read, errno: " << errno << std::endl;
+				std::cout << "Failed to read after first, errno: " << errno << std::endl;
 				perror("Failed to read: ");
 				exit(EXIT_FAILURE);
 			}
 			if (!read_ret) {
-				request->cancelled = true;
-				// std::cout << "cancelled\n";
+				request->state = RS_CANCELLED;
+				std::cout << "cancelled\n";
 				return;
 			}
 
-			request->read_once = true;
+			request->state = RS_READ_ONCE;
 			request->whole_request += std::string(buffer, buffer + read_ret);
-		}
+			std::cout << "read done: " << request->whole_request.size() << "\n";
+		} /*else {
+			std::cout << "poll in: " << POLLIN << "\n";
+			std::cout << "poll out: " << POLLOUT << "\n";
+			std::cout << "poll hup: " << POLLHUP << "\n";
+			std::cout << "poll value: " << pfd.revents << "\n";
+			std::cout << "write ready while reading?\n";
+		} */
 	}
-	else if (pfd.revents & POLL_OUT) {
+	else if (pfd.revents & POLLOUT) {
 		std::cout << "written: " << request->written << std::endl;
 		// std::cout << "resp size: " << resp->size() << std::endl;
 		ssize_t	write_ret = write(socket, resp->c_str() + request->written, resp->size() - request->written);
@@ -139,7 +180,8 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 		request->written += write_ret;
 		// std::cout << "written: " << request->written << std::endl;
 		if (request->written == (ssize_t)resp->size()) {
-			request->done = true;
+			request->state = RS_DONE;
 		}
 	}
+	//std::cout << "done checking read and write\n";
 }
