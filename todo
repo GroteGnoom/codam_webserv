@@ -21,5 +21,3 @@ test configuration with muliple routes
 turn directory listing on and off
 -- if client does a request on a location, and there is no index.html (or other root file) then a script should be called to show all the files. Can also just be a function that outputs html.
 
-when you POST a file: use filename given by user
--- also it shouldn't segfault when you upload it the second time
