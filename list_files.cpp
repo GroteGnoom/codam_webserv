@@ -8,7 +8,7 @@
 //returns a file listing of a directory in HTML, where the file names should be links.
 //example: https://stackoverflow.com/a/3793748
 
-std::string list_files(std::string path) {
+std::string list_files(std::string path, std::string uri) {
 	std::vector<std::string> filenames = all_files_in_dir(path);
 	std::string result;
 
@@ -16,7 +16,7 @@ std::string list_files(std::string path) {
 	result += "<div>";
 	result += "<h1> Index of " + path + "</h1><br>\n";
 	for (size_t i = 0; i < filenames.size(); i++) {
-		result += "<a href=" + path + "/" + filenames[i] + ">" + filenames[i] + "</a><br>\n";
+		result += "<a href=" + uri + "/" + filenames[i] + ">" + filenames[i] + "</a><br>\n";
 	}
 	result += "</div>";
 	std::cout << "returned files\n";

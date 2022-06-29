@@ -145,7 +145,7 @@ std::string handle_request(t_request request, t_settings settings, int port) {
 		if (!server.index.size() && uri.find('.') == std::string::npos && server.locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
 			std::cout << "file indexing\n";
 			try {
-				resp = list_files(server.root + uri);
+				resp = list_files(server.root + uri, uri);
 			} catch (...) {
 				resp = not_found();
 			}

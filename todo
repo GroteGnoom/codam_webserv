@@ -20,4 +20,6 @@ test configuration with muliple routes
 
 turn directory listing on and off
 -- if client does a request on a location, and there is no index.html (or other root file) then a script should be called to show all the files. Can also just be a function that outputs html.
+-- when you click on a file, firefox shows it if it's text, and downloads it if it's binary
+-- maybe only open if it's a directory, and send it otherwise? as the body?
 
