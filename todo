@@ -23,5 +23,3 @@ turn directory listing on and off
 
 when you POST a file: use filename given by user
 -- also it shouldn't segfault when you upload it the second time
-
-poll every read/write

@@ -25,7 +25,7 @@ test: all
 siege: all
 	./webserv > output &
 	sleep 1
-	siege 127.0.0.1:8080 -t10s -b
+	siege 127.0.0.1:8080 -t10s -b -c10
 	pkill webserv
 
 clean:

@@ -3,6 +3,17 @@
 #include "post.hpp"
 #include <fcntl.h>
 
+std::string get_filename(std::string body) {
+	std::cout << "body: " << body << "\n";
+	size_t filename_pos = body.find("filename=");
+	if (filename_pos == std::string::npos)
+		return "";
+	size_t closing_pos = body.find("\"", filename_pos + 11);
+	std::string line = body.substr(filename_pos + 10, closing_pos - filename_pos - 10);
+	std::cout << "line: " << line << "\n";
+	return line;
+}
+
 std::string get_post(t_request request, t_settings settings) {
 	t_response		response;
 	unsigned int	start = 0;
@@ -36,9 +47,11 @@ std::string get_post(t_request request, t_settings settings) {
 			break;
 		end--;
 	}
+	std::cout << request.whole_request.substr(0, 1000) << "\n";
 	
 	std::cout << "saving file!\n";
-	int fd = open("tests/post_output_test", O_WRONLY | O_CREAT | O_TRUNC, 0700);
+	std::string filename = "tests/" + get_filename(request.body);
+	int fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0700);
 	if (fd < 0)
 		perror("");
 	
