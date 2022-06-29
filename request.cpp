@@ -77,12 +77,6 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 	std::string							value;
 	struct pollfd 						pfd;
 
-	//for POLLHUP
-	//man literally says: This flag is
-	//output only, and ignored if present in the input events
-	// but that's not true!
-	//We also need POLLOUT. That's just a rule in the subject, checking for read and write needs to be done at the same time
-
 	pfd.events = POLLIN | POLLOUT;
 	pfd.revents = 0;
 	pfd.fd = socket;
@@ -128,13 +122,16 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 			request->state = RS_READ_ONCE;
 			request->whole_request += std::string(buffer, buffer + read_ret);
 			std::cout << "first read done: " << request->whole_request.size() << "\n";
+			//std::cout << "request: " << request->whole_request << "\n";
 		}
 		return;
 	}
 	if (request->state == RS_READ_ONCE) {
 		//if (!(pfd.revents & POLLIN) && !(pfd.revents & POLLOUT)) {
-		if (pfd.revents & POLLOUT) {
+		//std::cout << "event: " << pfd.revents << "\n";
+		if (!(pfd.revents & POLLIN)) {
 			//I think this means we've reached EOF
+		//if (!(pfd.revents & POLLIN) && (pfd.revents & POLLHUP)) {
 			request->state = RS_PROCESSING;
 			read_ret = read(socket, buffer, BUFSIZE);
 			std::cout << "done reading\n";
@@ -142,9 +139,9 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 			return;
 		}
 		else if (pfd.revents & POLLIN) {
-			std::cout << "read in\n";
+			//std::cout << "read in\n";
 			read_ret = read(socket, buffer, BUFSIZE);
-			std::cout << "did a read\n";
+			//std::cout << "did a read\n";
 
 			if (read_ret < 0) {
 				//maybe this should just remove the connection?
@@ -161,7 +158,7 @@ void	get_request_info(int socket, t_request *request, std::string *resp) {
 
 			request->state = RS_READ_ONCE;
 			request->whole_request += std::string(buffer, buffer + read_ret);
-			std::cout << "read done: " << request->whole_request.size() << "\n";
+			//std::cout << "read done: " << request->whole_request.size() << "\n";
 		} /*else {
 			std::cout << "poll in: " << POLLIN << "\n";
 			std::cout << "poll out: " << POLLOUT << "\n";

@@ -72,19 +72,19 @@ int	method_allowed(std::string method, t_settings settings) {
 }
 
 t_server get_server(t_settings settings, int port, t_request request) {
-	std::cout << "host: " << request.headers["Host"] << "\n";
+	//std::cout << "host: " << request.headers["Host"] << "\n";
 	std::string host = request.headers["Host"].substr(0, request.headers["Host"].find(':'));
-	std::cout << "host: " << host << "\n";
+	//std::cout << "host: " << host << "\n";
 	for (size_t i = 0; i < settings.servers.size(); i++) {
-		std::cout << "name: " << settings.servers[i].name << "\n";
+		//std::cout << "name: " << settings.servers[i].name << "\n";
 		if (port == settings.servers[i].listen_port && host == settings.servers[i].name) {
-			std::cout << "found server: " << i << "\n";
+			//std::cout << "found server: " << i << "\n";
 			return settings.servers[i];
 		}
 	}
 	for (size_t i = 0; i < settings.servers.size(); i++) {
 		if (port == settings.servers[i].listen_port) {
-			std::cout << "using default server: " << i << "\n";
+			//std::cout << "using default server: " << i << "\n";
 			return settings.servers[i];
 		}
 	}
