@@ -98,9 +98,10 @@ std::string handle_request(t_request request, t_settings settings, int port) {
 	std::string method = request.headers["Method"];
 	t_server server = get_server(settings, port, request);
 
-	if (!uri.compare(settings.redir_src))
-		uri.replace(0, settings.redir_dst.size(), settings.redir_dst);
-
+	if (!uri.compare(settings.redir_src)) {
+		//uri.replace(0, settings.redir_dst.size(), settings.redir_dst);
+		return get_redir_response(settings.redir_dst);
+	}
 	std::string webpage;
 	if (uri.find('.') == std::string::npos) {
 		if (server.index.size()) {

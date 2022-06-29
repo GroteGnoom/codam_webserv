@@ -27,6 +27,17 @@ std::string get_code_string(int code) {
 	return codestr.str() + " " + cs[code] + "\n";
 }
 
+std::string get_redir_response(std::string to) {
+	std::string r;
+
+	r += "HTTP/1.1 " + get_code_string(301) ;
+	r += "Server: webserv/1.0\n";
+	r += "Connection: close\n";
+	r += "Location: " + to;
+	r += "\n";
+
+	return r;
+}
 std::string response_to_string(t_response resp) {
 	std::stringstream	length;
 	std::string 		r;
