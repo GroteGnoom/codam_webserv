@@ -120,11 +120,7 @@ std::string handle_request(t_request request, t_settings settings, int port) {
 	}
 	else try {
 		if (method == "GET" && method_allowed("GET", settings)) {
-			try {
-				resp = get_response_from_page(webpage);
-			} catch (...) {
-				resp = not_found();
-			}
+			resp = get_response_from_page(webpage);
 		}
 		else if (method == "DELETE" && method_allowed("DELETE", settings)) {
 			resp = get_delete(webpage);
@@ -144,10 +140,19 @@ std::string handle_request(t_request request, t_settings settings, int port) {
 			resp = response_to_string(response);
 		}
 	} catch (...) {
+		std::cout << "file index!\n";
 		if (!server.index.size() && uri.find('.') == std::string::npos && server.locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
-			resp = list_files(server.root + uri);
+			std::cout << "file indexing\n";
+			try {
+				resp = list_files(server.root + uri);
+			} catch (...) {
+				resp = not_found();
+			}
 		}
-		else resp = not_found();
+		else {
+			std::cout << "returning not found\n";
+			resp = not_found();
+		}
 	}
 	// std::cout << resp << std::endl;
 	return resp;
