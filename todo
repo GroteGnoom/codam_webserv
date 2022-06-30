@@ -1,9 +1,6 @@
 
 test config parsing with more unit tests
 better error messages in config parsing
-dispatch request to threadpool
-siege stress test
-use hostname - maybe check this by putting two servers on the same port with different hostnames -- no, using the same port multiple times should not work
 the default error page needs to be able to be set in the configuration
 -- for exapmle with:   error_page 404 403 500 503 /error-page.html;
 
@@ -14,13 +11,3 @@ send a big file:
 	CGI POST passes its information via standard input (https://stackoverflow.com/questions/3557831/how-to-use-stdin-on-perl-cgi)
 	https://stackoverflow.com/questions/464040/how-are-post-and-get-variables-handled-in-python
 	
-the subject mentions default servers: http://nginx.org/en/docs/http/request_processing.html
-
-test configuration with muliple routes
-
-turn directory listing on and off
--- if client does a request on a location, and there is no index.html (or other root file) then a script should be called to show all the files. Can also just be a function that outputs html.
--- when you click on a file, firefox shows it if it's text, and downloads it if it's binary
--- maybe only open if it's a directory, and send it otherwise? as the body?
-	yes, the only problem is that that a file is seen as a directory, our current check is wrong
-

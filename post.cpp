@@ -24,7 +24,7 @@ std::string get_post(t_request request, t_settings settings) {
 		response.body = "";
 		response.code = 400;
 		return response_to_string(response, 0);
-	} else if (request.body.size() > settings.size_string) { //TODO should be multiple 
+	} else if (request.body.size() > settings.size_string) { //TODO there should be multiple size strings, not just one global size string
 		std::cout << "Body too large: size is " << request.body.size() << ", maximum is " << settings.size_string << "\n";
 		response.body = "";
 		response.code = 413;
