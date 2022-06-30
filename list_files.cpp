@@ -14,13 +14,13 @@ std::string list_files(std::string path, std::string uri) {
 
 	result += "<head><style> div { background-color: gold; width: 300px; border: 15px solid purple; padding: 50px; margin: 20px; } </style> </head> \n";
 	result += "<div>";
-	result += "<h1> Index of " + path + "</h1><br>\n";
+	result += "<h1> Index of " + uri + "</h1><br>\n";
 	for (size_t i = 0; i < filenames.size(); i++) {
 		result += "<a href=" + uri + "/" + filenames[i] + ">" + filenames[i] + "</a><br>\n";
 	}
 	result += "</div>";
 	std::cout << "returned files\n";
-	return get_response(result);
+	return get_response(result, 1);
 }
 
 std::vector<std::string> all_files_in_dir(std::string path) {
@@ -31,7 +31,8 @@ std::vector<std::string> all_files_in_dir(std::string path) {
 	
 	if (dir != NULL) {
 		while ((ent = readdir (dir)) != NULL) {
-			result.push_back(ent->d_name);
+			if (strcmp(ent->d_name, ".") && strcmp(ent->d_name, ".."))
+				result.push_back(ent->d_name);
 		}
 		closedir (dir);
 	} else {

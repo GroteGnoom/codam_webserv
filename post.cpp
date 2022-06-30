@@ -23,12 +23,12 @@ std::string get_post(t_request request, t_settings settings) {
 		std::cout << "no body!\n";
 		response.body = "";
 		response.code = 400;
-		return response_to_string(response);
-	} else if (request.body.size() > settings.size_string) {
-		std::cout << "Body too large!\n";
+		return response_to_string(response, 0);
+	} else if (request.body.size() > settings.size_string) { //TODO should be multiple 
+		std::cout << "Body too large: size is " << request.body.size() << ", maximum is " << settings.size_string << "\n";
 		response.body = "";
 		response.code = 413;
-		return response_to_string(response);
+		return response_to_string(response, 0);
 	}
 
 	while (start < request.body.size() - 1) {
@@ -51,7 +51,7 @@ std::string get_post(t_request request, t_settings settings) {
 	//std::cout << "body size: " << request.body.size() << "\n";
 	
 	std::cout << "saving file!\n";
-	std::string filename = "tests/" + get_filename(request.body);
+	std::string filename = "tests/uploads/" + get_filename(request.body);
 	int fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0700);
 	if (fd < 0)
 		perror("");
@@ -62,5 +62,5 @@ std::string get_post(t_request request, t_settings settings) {
 	std::cout << "done!\n";
 	response.body = "your file has been saved!\r\n<a href=\"/../\">Go to home page</a>\r\n";
 	response.code = 200;
-	return response_to_string(response);
+	return response_to_string(response, 1);
 }

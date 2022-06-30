@@ -38,7 +38,7 @@ std::string get_redir_response(std::string to) {
 
 	return r;
 }
-std::string response_to_string(t_response resp) {
+std::string response_to_string(t_response resp, bool html) {
 	std::stringstream	length;
 	std::string 		r;
 
@@ -47,7 +47,10 @@ std::string response_to_string(t_response resp) {
 
 	r += "HTTP/1.1 " + get_code_string(resp.code) ;
 	r += "Server: webserv/1.0\n";
-	r += "Content-Type: text/html\n";
+	if (html)
+		r += "Content-Type: text/html\n";
+	else 
+		r += "Content-Type: text/plain\n";
 	r += "Content-Length: " + length.str() + "\n";
 	r += "Connection: close\n";
 	r += "\n";
@@ -57,15 +60,19 @@ std::string response_to_string(t_response resp) {
 	return r;
 }
 
-std::string get_response(std::string body) {
+std::string get_response(std::string body, bool html) {
 	t_response resp;
 
 	resp.body = body;
 	resp.code = 200;
-	return response_to_string(resp);
+	return response_to_string(resp, html);
 }
 
 std::string get_response_from_page(std::string webpage) {
+	std::cout << "get response from page: " << webpage << "\n";
+	bool html = 0;
+	if (webpage.find(".html") == webpage.size() - 5)
+		html = 1;
 	t_response			resp;
 	std::ostringstream	sstr;
 
@@ -78,5 +85,5 @@ std::string get_response_from_page(std::string webpage) {
     sstr << input_stream.rdbuf();
 	resp.body = sstr.str();
 	resp.code = 200;
-	return response_to_string(resp);
+	return response_to_string(resp, html);
 }

@@ -16,6 +16,7 @@
 #include <set>
 #include "post.hpp"
 #include "list_files.hpp"
+#include <sys/stat.h>
 
 /*
 * bind a port to a socket
@@ -92,25 +93,36 @@ t_server get_server(t_settings settings, int port, t_request request) {
 	exit(1);
 }
 
+bool is_directory(std::string path) {
+	struct stat s;
+	if( stat(path.c_str(),&s) == 0 )
+	{
+		if( s.st_mode & S_IFDIR )
+			return true;
+	}
+	return false;
+}
+
 std::string handle_request(t_request request, t_settings settings, int port) {
 	std::string resp;
 	std::string uri = request.headers["Request-URI"];
 	std::string method = request.headers["Method"];
 	t_server server = get_server(settings, port, request);
+	std::string path = server.root + uri;
 
 	if (!uri.compare(settings.redir_src)) {
 		//uri.replace(0, settings.redir_dst.size(), settings.redir_dst);
 		return get_redir_response(settings.redir_dst);
 	}
 	std::string webpage;
-	if (uri.find('.') == std::string::npos) {
+	if (is_directory(path)) {
 		if (server.index.size()) {
-			webpage = server.root + uri + server.index;
+			webpage = path + server.index;
 		} else {
-			webpage = server.root + uri + "/index.html";
+			webpage = path + "/index.html";
 		}
 	} else {
-		webpage = server.root + uri;
+		webpage = path;
 	}
 	// std::cout << "page: " << webpage << "\n";
 
@@ -132,20 +144,20 @@ std::string handle_request(t_request request, t_settings settings, int port) {
 			t_response response;
 			response.body = "";
 			response.code = 405;
-			resp = response_to_string(response);
+			resp = response_to_string(response, 0);
 		} else {
 			t_response response;
 			response.body = "";
 			response.code = 501;
 			std::cout << method << "\n";
-			resp = response_to_string(response);
+			resp = response_to_string(response, 0);
 		}
 	} catch (...) {
 		std::cout << "file index!\n";
-		if (!server.index.size() && uri.find('.') == std::string::npos && server.locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
+		if (!server.index.size() && is_directory(path) && server.locations[0].autoindex) { //TODO check location. autoindex is now a global setting :(
 			std::cout << "file indexing\n";
 			try {
-				resp = list_files(server.root + uri, uri);
+				resp = list_files(path, uri);
 			} catch (...) {
 				resp = not_found();
 			}
